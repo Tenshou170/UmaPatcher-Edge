@@ -23,7 +23,6 @@ import dev.LeadRDRK.UmaPatcherEdge.utils.bytesToHex
 import dev.LeadRDRK.UmaPatcherEdge.utils.downloadFileAndDigestSHA256
 import dev.LeadRDRK.UmaPatcherEdge.utils.fetchJson
 import dev.LeadRDRK.UmaPatcherEdge.utils.ksFile
-import dev.LeadRDRK.UmaPatcherEdge.utils.pluginsDir
 import dev.LeadRDRK.UmaPatcherEdge.utils.workDir
 import dev.LeadRDRK.UmaPatcherEdge.zip.ZipExtractor
 import com.reandroid.apk.ApkModule
@@ -96,7 +95,6 @@ class AppPatcher(
                 task = context.getString(R.string.cleaning_up)
             }
             dev.LeadRDRK.UmaPatcherEdge.utils.deleteRecursive(context.workDir, deleteRoot = false)
-            dev.LeadRDRK.UmaPatcherEdge.utils.deleteRecursive(context.pluginsDir, deleteRoot = false)
         }
     }
 

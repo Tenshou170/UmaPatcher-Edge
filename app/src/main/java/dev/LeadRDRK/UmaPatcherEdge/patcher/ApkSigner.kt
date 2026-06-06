@@ -1,6 +1,7 @@
 package dev.LeadRDRK.UmaPatcherEdge.patcher
 
 import com.android.apksig.ApkSigner
+import com.android.apksig.KeyConfig
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 import org.bouncycastle.cert.X509v3CertificateBuilder
@@ -65,11 +66,15 @@ internal class ApkSigner(
 
         val config = ApkSigner.SignerConfig.Builder(
             cn,
-            keyStore.getKey(alias, passwordCharArray) as PrivateKey,
+            KeyConfig.Jca(keyStore.getKey(alias, passwordCharArray) as PrivateKey),
             listOf(keyStore.getCertificate(alias) as X509Certificate)
         ).build()
 
         val signer = ApkSigner.Builder(listOf(config))
+        signer.setV1SigningEnabled(true)
+        signer.setV2SigningEnabled(true)
+        signer.setV3SigningEnabled(true)
+        signer.setV4SigningEnabled(false)
         signer.setCreatedBy(cn)
         signer.setInputApk(input)
         signer.setOutputApk(output)

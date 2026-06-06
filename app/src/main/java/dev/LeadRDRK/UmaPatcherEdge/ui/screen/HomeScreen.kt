@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -411,10 +412,11 @@ fun ModSourceCard() {
             }
 
             if (modSourceState.value == "local") {
+                Divider()
                 Spacer(Modifier.height(4.dp))
                 ElevatedCard(
                     colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -425,23 +427,34 @@ fun ModSourceCard() {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(16.dp)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_file_open),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                            contentDescription = null
                         )
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            text = if (customSoUriState.value.isNotEmpty()) {
-                                stringResource(R.string.custom_mod_lib_selected, customSoNameState.value)
-                            } else {
-                                stringResource(R.string.tap_to_select_mod_lib)
-                            },
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.use_custom_mod_lib),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = if (customSoUriState.value.isNotEmpty()) {
+                                    stringResource(R.string.custom_mod_lib_selected, customSoNameState.value)
+                                } else {
+                                    stringResource(R.string.tap_to_select_mod_lib)
+                                },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.custom_so_supported_files),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }

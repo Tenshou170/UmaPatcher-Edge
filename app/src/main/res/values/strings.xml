@@ -136,6 +136,7 @@
     <string name="use_custom_mod_lib">Local library file</string>
     <string name="tap_to_select_mod_lib">Tap here to select local .so file</string>
     <string name="custom_mod_lib_selected">Selected: %s</string>
+    <string name="custom_so_supported_files">Supported files: .so</string>
 
     <!-- Patching screen actions -->
     <string name="stop_patching_and_cleanup">Stop patching</string>
