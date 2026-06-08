@@ -34,7 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -57,6 +57,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import dev.LeadRDRK.UmaPatcherEdge.core.PrefKey
 import dev.LeadRDRK.UmaPatcherEdge.core.defaultValues
+import dev.LeadRDRK.UmaPatcherEdge.ui.component.BottomBarScrollSpacer
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.rememberDataStoreStringState
 
 @RootNavGraph(start = true)
@@ -88,7 +89,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             ModSourceCard()
             AppPatcherCard(navigator)
             PluginSection()
-            Spacer(Modifier.height(8.dp))
+            BottomBarScrollSpacer()
         }
     }
 }

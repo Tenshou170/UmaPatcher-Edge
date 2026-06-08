@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.content.pm.PackageManager
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
@@ -15,7 +16,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -79,6 +80,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
 
@@ -154,11 +156,12 @@ private fun MainContent() {
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = { BottomBar(navController, bottomBarState) }
-    ) { innerPadding ->
+    ) {
         if (rootInitialized.value) {
             DestinationsNavHost(
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier,
                 navGraph = NavGraphs.root,
                 navController = navController,
                 engine = navHostEngine

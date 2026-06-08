@@ -26,6 +26,7 @@ import dev.LeadRDRK.UmaPatcherEdge.core.dataStore
 import dev.LeadRDRK.UmaPatcherEdge.core.defaultValues
 import dev.LeadRDRK.UmaPatcherEdge.core.getPrefValue
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BooleanOption
+import dev.LeadRDRK.UmaPatcherEdge.ui.component.BottomBarScrollSpacer
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.OptionBase
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.StringOption
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.TopBar
@@ -186,6 +187,8 @@ fun SettingsScreen() {
                 }
             ) {
             }
+
+            BottomBarScrollSpacer()
         }
     }
 }

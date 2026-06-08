@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.LeadRDRK.UmaPatcherEdge.utils.safeNavigate
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 

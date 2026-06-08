@@ -36,7 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import dev.LeadRDRK.UmaPatcherEdge.R
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BackButton
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.TopBar
+import dev.LeadRDRK.UmaPatcherEdge.ui.component.bottomControlsPadding
 import dev.LeadRDRK.UmaPatcherEdge.ui.patcher.PatcherLauncher
 import dev.LeadRDRK.UmaPatcherEdge.utils.copyTo
 import dev.LeadRDRK.UmaPatcherEdge.utils.safeNavigate
@@ -204,7 +205,7 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
             )
             Column(
                 modifier = Modifier
-                    .padding(all = 16.dp)
+                    .bottomControlsPadding()
             ) {
                 Row(
                     modifier = Modifier

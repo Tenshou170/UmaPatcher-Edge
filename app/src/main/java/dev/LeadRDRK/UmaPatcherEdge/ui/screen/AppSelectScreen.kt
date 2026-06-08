@@ -21,13 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import dev.LeadRDRK.UmaPatcherEdge.R
 import dev.LeadRDRK.UmaPatcherEdge.core.GameChecker
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BackButton
+import dev.LeadRDRK.UmaPatcherEdge.ui.component.BottomBarScrollSpacer
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.TopBar
 import dev.LeadRDRK.UmaPatcherEdge.utils.safeNavigate
 import com.ramcosta.composedestinations.annotation.Destination
@@ -70,6 +71,7 @@ fun AppSelectScreen(navigator: DestinationsNavigator) {
                     }
                 )
             }
+            BottomBarScrollSpacer()
         }
     }
 }

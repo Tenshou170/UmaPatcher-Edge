@@ -15,8 +15,8 @@ UmaPatcher-Edge utilizes **Gradle 8.11.1** and modern Kotlin versions, which are
 
 ### 2. Android SDK
 You need the Android SDK with:
-* **Platforms**: Android API Level **34** (`platforms;android-34`)
-* **Build-Tools**: Version **34.0.0** or **35.0.0** (`build-tools;34.0.0` or `build-tools;35.0.0`)
+* **Platforms**: Android API Level **35** (`platforms;android-35`)
+* **Build-Tools**: Version **35.0.0** or newer compatible with Android Gradle Plugin 8.10.x (`build-tools;35.0.0`)
 * **Platform-Tools** (`platform-tools`)
 
 ---
@@ -81,13 +81,13 @@ If you do not have the Android SDK or Platforms set up, download the [Android Co
 
 * **Linux**:
   ```bash
-  yes | sdkmanager --sdk_root=/home/<username>/Android/Sdk "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+  yes | sdkmanager --sdk_root=/home/<username>/Android/Sdk "platforms;android-35" "build-tools;35.0.0" "platform-tools"
   ```
 * **Windows (PowerShell)**:
   ```powershell
   # Accept license and install
   cd C:\path\to\cmdline-tools\bin
-  cmd.exe /c "echo y | .\sdkmanager.bat --sdk_root=C:\Users\<username>\AppData\Local\Android\Sdk platforms;android-34 build-tools;34.0.0 platform-tools"
+  cmd.exe /c "echo y | .\sdkmanager.bat --sdk_root=C:\Users\<username>\AppData\Local\Android\Sdk platforms;android-35 build-tools;35.0.0 platform-tools"
   ```
 
 ---
@@ -174,5 +174,4 @@ The compiled APK will be generated at:
     set PATH=%JAVA_HOME%\bin;%PATH%
     gradlew.bat ...
     ```
-
 
