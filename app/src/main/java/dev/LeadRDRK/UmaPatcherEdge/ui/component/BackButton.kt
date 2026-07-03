@@ -1,7 +1,7 @@
 package dev.LeadRDRK.UmaPatcherEdge.ui.component
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -20,6 +20,6 @@ fun BackButton(navigator: DestinationsNavigator, enabled: Boolean = true) {
         },
         enabled = enabled
     ) {
-        Icon(Icons.Filled.ArrowBack, contentDescription = null)
+        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
     }
 }

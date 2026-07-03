@@ -111,6 +111,12 @@
     <string name="plugins_patched">已修改外掛：%s</string>
     <string name="failed_to_install_plugin">安裝外掛失敗：%s</string>
 
+    <!-- AppPatcher -->
+    <string name="using_local_library">正在使用本地程式庫...</string>
+    <string name="local_library_loaded">本地程式庫已成功載入！</string>
+    <string name="error_local_library_no_file">錯誤：選擇了本地程式庫但未選擇檔案。</string>
+    <string name="error_local_library_load_failed">載入本地程式庫失敗：%s</string>
+
     <!-- 本地 Hachimi 來源配置 -->
     <string name="hachimi_mod_source">Hachimi 來源</string>
     <string name="hachimi_mod_source_desc">選擇是從 GitHub 獲取 Hachimi 還是使用本地 .so 檔案。</string>
@@ -119,4 +125,10 @@
     <string name="use_custom_mod_lib">本地程式庫檔案</string>
     <string name="tap_to_select_mod_lib">點擊此處選擇本地 .so 檔案</string>
     <string name="custom_mod_lib_selected">已選擇：%s</string>
+    <string name="custom_so_supported_files">支持的檔案：.so</string>
+
+    <!-- Patching screen actions -->
+    <string name="stop_patching_and_cleanup">停止修改</string>
+    <string name="launch_game">開始遊戲</string>
+    <string name="patching_cancelled_by_user">使用者已取消修改</string>
 </resources>

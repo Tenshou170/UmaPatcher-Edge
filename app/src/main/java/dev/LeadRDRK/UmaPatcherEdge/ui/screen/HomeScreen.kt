@@ -1,5 +1,7 @@
 package dev.LeadRDRK.UmaPatcherEdge.ui.screen
 
+import android.content.Intent
+import android.content.pm.PackageInfo
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,7 +24,7 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -31,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,11 +53,13 @@ import dev.LeadRDRK.UmaPatcherEdge.utils.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import android.content.Intent
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.RadioButton
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.core.PrefKey
 import dev.LeadRDRK.UmaPatcherEdge.core.defaultValues
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BottomBarScrollSpacer
@@ -63,7 +68,15 @@ import dev.LeadRDRK.UmaPatcherEdge.ui.component.rememberDataStoreStringState
 @RootNavGraph(start = true)
 @Destination
 @Composable
-fun HomeScreen(navigator: DestinationsNavigator) {
+fun HomeScreen(
+    navigator: DestinationsNavigator,
+    viewModel: HomeViewModel = viewModel()
+) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.refreshStatus(context)
+    }
+
     Scaffold(
         topBar = {
             TopBar(
@@ -85,19 +98,18 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            InstallStatusCard(navigator)
-            ModSourceCard()
+            val packageInfo by viewModel.packageInfo.collectAsState()
+            InstallStatusCard(navigator, packageInfo)
+            ModSourceCard(viewModel)
             AppPatcherCard(navigator)
-            PluginSection()
+            PluginSection(viewModel)
             BottomBarScrollSpacer()
         }
     }
 }
 
 @Composable
-fun InstallStatusCard(navigator: DestinationsNavigator) {
-    val pm = LocalContext.current.packageManager
-    val packageInfo = GameChecker.getPackageInfo(pm)
+fun InstallStatusCard(navigator: DestinationsNavigator, packageInfo: PackageInfo?) {
     val lifecycleOwner = LocalLifecycleOwner.current
     ElevatedCard(
         colors = CardDefaults.elevatedCardColors(
@@ -161,23 +173,13 @@ fun InstallStatusCard(navigator: DestinationsNavigator) {
 }
 
 @Composable
-fun PluginSection() {
+fun PluginSection(viewModel: HomeViewModel) {
     val context = LocalContext.current
-    val plugins = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(listOf<PluginEntry>()) }
+    val plugins by viewModel.plugins.collectAsState()
 
     val importPluginLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        val added = PluginManager.addPlugin(context, uri)
-        if (added == null) {
-            context.showToast(context.getString(R.string.failed_to_add_plugin), Toast.LENGTH_SHORT)
-        } else {
-            context.showToast(context.getString(R.string.plugin_added), Toast.LENGTH_SHORT)
-        }
-        plugins.value = PluginManager.listPlugins(context)
-    }
-
-    LaunchedEffect(Unit) {
-        plugins.value = PluginManager.listPlugins(context)
+        viewModel.addPlugin(context, uri)
     }
 
     Card(
@@ -241,14 +243,14 @@ fun PluginSection() {
                 )
             }
 
-            if (plugins.value.isEmpty()) {
+            if (plugins.isEmpty()) {
                 Text(
                     text = stringResource(R.string.no_plugins),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                plugins.value.forEach { plugin ->
+                for (plugin in plugins) {
                     Card(
                         colors = CardDefaults.elevatedCardColors(
                             containerColor = MaterialTheme.colorScheme.surface
@@ -266,8 +268,7 @@ fun PluginSection() {
                             Checkbox(
                                 checked = plugin.enabled,
                                 onCheckedChange = {
-                                    PluginManager.setEnabled(context, plugin.fileName, it)
-                                    plugins.value = PluginManager.listPlugins(context)
+                                    viewModel.setPluginEnabled(context, plugin.fileName, it)
                                 }
                             )
                             Column(
@@ -290,12 +291,7 @@ fun PluginSection() {
                                 modifier = Modifier
                                     .padding(start = 8.dp)
                                     .clickable {
-                                        PluginManager.removePlugin(context, plugin.fileName)
-                                        plugins.value = PluginManager.listPlugins(context)
-                                        context.showToast(
-                                            context.getString(R.string.plugin_removed),
-                                            Toast.LENGTH_SHORT
-                                        )
+                                        viewModel.removePlugin(context, plugin.fileName)
                                     }
                             )
                         }
@@ -307,23 +303,12 @@ fun PluginSection() {
 }
 
 @Composable
-fun ModSourceCard() {
+fun ModSourceCard(viewModel: HomeViewModel) {
     val context = LocalContext.current
     
-    val modSourceState = rememberDataStoreStringState(
-        key = PrefKey.HACHIMI_MOD_SOURCE,
-        defaultValue = defaultValues[PrefKey.HACHIMI_MOD_SOURCE] as String
-    )
-
-    val customSoUriState = rememberDataStoreStringState(
-        key = PrefKey.CUSTOM_MOD_SO_URI,
-        defaultValue = ""
-    )
-
-    val customSoNameState = rememberDataStoreStringState(
-        key = PrefKey.CUSTOM_MOD_SO_NAME,
-        defaultValue = ""
-    )
+    val modSource = viewModel.modSource
+    val customSoUri = viewModel.customSoUri
+    val customSoName = viewModel.customSoName
 
     val customSoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -335,21 +320,8 @@ fun ModSourceCard() {
         } catch (e: Exception) {
             android.util.Log.e("ModSourceCard", "Failed to take persistable URI permission", e)
         }
-        customSoUriState.value = uri.toString()
-        customSoNameState.value = androidx.documentfile.provider.DocumentFile.fromSingleUri(context, uri)?.name ?: "libmain-arm64-v8a.so"
-    }
-
-    val modSourceInt = remember {
-        mutableStateOf(if (modSourceState.value == "github") 0 else 1)
-    }
-    LaunchedEffect(modSourceInt.value) {
-        modSourceState.value = if (modSourceInt.value == 0) "github" else "local"
-    }
-    LaunchedEffect(modSourceState.value) {
-        val mapped = if (modSourceState.value == "github") 0 else 1
-        if (modSourceInt.value != mapped) {
-            modSourceInt.value = mapped
-        }
+        val name = androidx.documentfile.provider.DocumentFile.fromSingleUri(context, uri)?.name ?: "libmain-arm64-v8a.so"
+        viewModel.updateCustomSo(context, uri, name)
     }
 
     Card(
@@ -383,11 +355,11 @@ fun ModSourceCard() {
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { modSourceInt.value = 0 }
+                    modifier = Modifier.clickable { viewModel.updateModSource(context, "github") }
                 ) {
                     RadioButton(
-                        selected = (modSourceInt.value == 0),
-                        onClick = { modSourceInt.value = 0 }
+                        selected = (modSource == "github"),
+                        onClick = { viewModel.updateModSource(context, "github") }
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
@@ -398,11 +370,11 @@ fun ModSourceCard() {
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { modSourceInt.value = 1 }
+                    modifier = Modifier.clickable { viewModel.updateModSource(context, "local") }
                 ) {
                     RadioButton(
-                        selected = (modSourceInt.value == 1),
-                        onClick = { modSourceInt.value = 1 }
+                        selected = (modSource == "local"),
+                        onClick = { viewModel.updateModSource(context, "local") }
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
@@ -412,8 +384,8 @@ fun ModSourceCard() {
                 }
             }
 
-            if (modSourceState.value == "local") {
-                Divider()
+            if (modSource == "local") {
+                HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
                 ElevatedCard(
                     colors = CardDefaults.elevatedCardColors(
@@ -442,8 +414,8 @@ fun ModSourceCard() {
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = if (customSoUriState.value.isNotEmpty()) {
-                                    stringResource(R.string.custom_mod_lib_selected, customSoNameState.value)
+                                text = if (customSoUri.isNotEmpty()) {
+                                    stringResource(R.string.custom_mod_lib_selected, customSoName)
                                 } else {
                                     stringResource(R.string.tap_to_select_mod_lib)
                                 },

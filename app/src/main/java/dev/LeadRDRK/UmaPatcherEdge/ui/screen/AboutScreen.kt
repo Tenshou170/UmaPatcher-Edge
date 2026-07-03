@@ -15,7 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -31,9 +31,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.BuildConfig
 import dev.LeadRDRK.UmaPatcherEdge.R
-import dev.LeadRDRK.UmaPatcherEdge.core.UpdateChecker
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BottomBarScrollSpacer
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.TopBar
 import dev.LeadRDRK.UmaPatcherEdge.ui.screen.destinations.OpenSourceLicensesScreenDestination
@@ -43,7 +43,10 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 @Destination
 @Composable
-fun AboutScreen(navigator: DestinationsNavigator) {
+fun AboutScreen(
+    navigator: DestinationsNavigator,
+    viewModel: AboutViewModel = viewModel()
+) {
     val context = LocalContext.current
 
     Scaffold(
@@ -92,13 +95,13 @@ fun AboutScreen(navigator: DestinationsNavigator) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Divider()
+                HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
                 TextButtonWithIcon(
                     text = stringResource(R.string.check_for_updates),
                     icon = { Icon(Icons.Outlined.Refresh, null) }
                 ) {
-                    UpdateChecker.run(context)
+                    viewModel.checkForUpdates(context)
                 }
                 TextButtonWithIcon(
                     text = stringResource(R.string.open_source_licenses),

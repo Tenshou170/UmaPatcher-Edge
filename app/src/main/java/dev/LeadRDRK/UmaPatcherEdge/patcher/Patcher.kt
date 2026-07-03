@@ -51,9 +51,9 @@ abstract class Patcher(
         if (isCancelled) throw kotlinx.coroutines.CancellationException("Patching cancelled by user")
     }
 
-    abstract fun run(context: Context): Boolean
+    abstract suspend fun run(context: Context): Boolean
 
-    fun safeRun(context: Context): Boolean {
+    suspend fun safeRun(context: Context): Boolean {
         return try {
             run(context)
         } catch (ex: kotlinx.coroutines.CancellationException) {

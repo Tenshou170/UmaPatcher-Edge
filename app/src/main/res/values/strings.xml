@@ -86,6 +86,10 @@
 
     <!-- AppPatcher -->
     <string name="syncing_app_libs">Syncing Hachimi libraries</string>
+    <string name="using_local_library">Using local library...</string>
+    <string name="local_library_loaded">Local library loaded successfully!</string>
+    <string name="error_local_library_no_file">Error: Local library chosen but no file is selected.</string>
+    <string name="error_local_library_load_failed">Failed to load local library: %s</string>
     <string name="downloading_file">Downloading file: %s</string>
     <string name="failed_to_download_app_libs">Failed to download Hachimi libraries.</string>
     <string name="failed_to_sync_app_libs">Failed to sync Hachimi libraries. Skipping.</string>

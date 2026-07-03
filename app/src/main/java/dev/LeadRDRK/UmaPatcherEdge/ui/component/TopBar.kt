@@ -17,9 +17,9 @@ fun TopBar(
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
-            scrolledContainerColor = MaterialTheme.colorScheme.secondary
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         title = {
             Text(title)

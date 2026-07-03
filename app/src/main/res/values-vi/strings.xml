@@ -83,6 +83,7 @@
     <string name="update_available_desc">Một phiên bản mới đã có sẵn: %s\nBạn có muốn mở trang tải về không?</string>
     <string name="failed_to_check_for_updates">Không thể kiểm tra cập nhật</string>
     <string name="no_updates_available">Không có cập nhật</string>
+
     <string name="shizuku_install">Cài đặt Shizuku</string>
     <string name="shizuku_install_available">(Có sẵn)</string>
     <string name="shizuku_install_unavailable">(Không có sẵn)</string>    
@@ -100,6 +101,7 @@
     <string name="shizuku_install_fail">Cài đặt Shizuku thất bại: %s</string>
     <string name="shizuku_install_error">Cài đặt Shizuku thất bại do một ngoại lệ: %s</string>
     <string name="shizuku_install_fail_unexpected">Dịch vụ bị ngắt kết nối bất ngờ.</string>
+
     <string name="plugins_title">Plugin</string>
     <string name="add_plugin">Thêm plugin</string>
     <string name="remove_plugin">Xóa</string>
@@ -111,6 +113,12 @@
     <string name="plugins_patched">Các plugin đã được vá: %s</string>
     <string name="failed_to_install_plugin">Cài đặt plugin thất bại: %s</string>
 
+    <!-- AppPatcher -->
+    <string name="using_local_library">Đang sử dụng thư viện cục bộ...</string>
+    <string name="local_library_loaded">Thư viện cục bộ đã được tải thành công!</string>
+    <string name="error_local_library_no_file">Lỗi: Đã chọn thư viện cục bộ nhưng chưa chọn tệp.</string>
+    <string name="error_local_library_load_failed">Tải thư viện cục bộ thất bại: %s</string>
+
     <!-- Cấu hình nguồn Hachimi cục bộ -->
     <string name="hachimi_mod_source">Nguồn Hachimi</string>
     <string name="hachimi_mod_source_desc">Chọn tải Hachimi từ GitHub hoặc sử dụng tệp .so cục bộ.</string>
@@ -119,4 +127,10 @@
     <string name="use_custom_mod_lib">Tệp thư viện cục bộ</string>
     <string name="tap_to_select_mod_lib">Nhấn vào đây để chọn tệp .so cục bộ</string>
     <string name="custom_mod_lib_selected">Đã chọn: %s</string>
+    <string name="custom_so_supported_files">Hỗ trợ: .so</string>
+
+    <!-- Patching screen actions -->
+    <string name="stop_patching_and_cleanup">Dừng vá</string>
+    <string name="launch_game">Bắt đầu game</string>
+    <string name="patching_cancelled_by_user">Đã hủy vá bởi người dùng</string>
 </resources>

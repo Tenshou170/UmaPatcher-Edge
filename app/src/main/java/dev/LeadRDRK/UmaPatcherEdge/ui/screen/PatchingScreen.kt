@@ -11,8 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.R
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BackButton
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.TopBar
@@ -53,131 +55,65 @@ import dev.LeadRDRK.UmaPatcherEdge.utils.copyTo
 import dev.LeadRDRK.UmaPatcherEdge.utils.safeNavigate
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.File
-
-private const val MAX_LOG_LINES = 200
 
 @Destination
 @Composable
-fun PatchingScreen(navigator: DestinationsNavigator) {
+fun PatchingScreen(
+    navigator: DestinationsNavigator,
+    viewModel: PatchingViewModel = viewModel()
+) {
     val workingStr = stringResource(R.string.working)
     val completedStr = stringResource(R.string.completed)
 
-    val log = remember { mutableStateListOf<String>() }
-    var currentTask by remember { mutableStateOf(workingStr) }
-    var progress by remember { mutableFloatStateOf(-1f) }
-    var completed by remember { mutableStateOf(false) }
-    var isSuccess by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Patcher callbacks
-    fun onLog(line: String) {
-        log.add(line)
-        if (log.size > MAX_LOG_LINES)
-            log.removeRange(0, log.size - MAX_LOG_LINES)
-    }
-    fun onProgress(p: Float) { progress = p }
-    fun onTask(task: String) {
-        currentTask = task
-        log.add("-- $task")
-    }
+    val patchSuccessMsg = stringResource(R.string.patch_success_msg)
+    val patchFailedMsg = stringResource(R.string.patch_failed_msg)
+    val patchCancelledMsg = stringResource(R.string.patching_cancelled_by_user)
 
-    val coroutineScope = rememberCoroutineScope()
-    var sfFile by remember { mutableStateOf<File?>(null) }
-    var sfCallback: (Boolean) -> Unit by remember { mutableStateOf({}) }
     val sfLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val uri = it.data?.data
-        if (uri == null) {
-            sfCallback(false)
-            sfFile = null
-            return@rememberLauncherForActivityResult
-        }
+        viewModel.handleSaveFileResult(context, it.data?.data, completedStr)
+    }
 
-        coroutineScope.launch(Dispatchers.IO) {
-            context.contentResolver.openOutputStream(uri).use { output ->
-                if (output == null) {
-                    sfCallback(false)
-                    sfFile = null
-                    return@launch
+    LaunchedEffect(viewModel.sfFile) {
+        val file = viewModel.sfFile
+        if (file != null) {
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "*/*"
+                    putExtra(Intent.EXTRA_TITLE, file.name)
                 }
-
-                val file = sfFile!!
-                val length = file.length().toFloat()
-                onTask(context.getString(R.string.copying_file_name).format(file.name))
-                progress = 0f
-                file.inputStream().use { input ->
-                    input.copyTo(output) { current ->
-                        progress = current / length
-                    }
-                }
-            }
-            sfCallback(true)
-            currentTask = completedStr
-            sfFile = null
+            sfLauncher.launch(intent)
         }
     }
 
-    fun onSaveFile(filename: String, file: File, callback: (Boolean) -> Unit = {}) {
-        sfFile = file
-        sfCallback = callback
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-            .apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
-                putExtra(Intent.EXTRA_TITLE, filename)
-            }
-        sfLauncher.launch(intent)
-    }
-
-    val scrollState = rememberScrollState()
-    LaunchedEffect(log.size) {
-        scrollState.scrollTo(scrollState.maxValue)
+    val lazyListState = rememberLazyListState()
+    LaunchedEffect(viewModel.log.size) {
+        if (viewModel.log.isNotEmpty()) {
+            lazyListState.animateScrollToItem(viewModel.log.size - 1)
+        }
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     BackHandler {
-        if (completed && sfFile == null) {
+        if (viewModel.completed && viewModel.sfFile == null) {
             safeNavigate(lifecycleOwner) {
                 navigator.popBackStack()
             }
         }
     }
 
-    val patchSuccessMsg = stringResource(R.string.patch_success_msg)
-    val patchFailedMsg = stringResource(R.string.patch_failed_msg)
-
-    val patchCancelledMsg = stringResource(R.string.patching_cancelled_by_user)
-
-    LaunchedEffect(true) {
-        if (PatcherLauncher.patching) return@LaunchedEffect
-        val patcher = PatcherLauncher.patcher!!
-        patcher.setCallbacks(::onLog, ::onProgress, ::onTask, ::onSaveFile)
-        PatcherLauncher.runPatcher(context) { success ->
-            completed = true
-            isSuccess = success && !patcher.isCancelled
-            if (patcher.isCancelled) {
-                log.add(patchCancelledMsg)
-                progress = 1f
-            } else {
-                log.add(if (success) patchSuccessMsg else patchFailedMsg)
-                progress = 1f
-            }
-        }
-    }
-
-    LaunchedEffect(completed) {
-        if (completed) {
-            currentTask = completedStr
-        }
+    LaunchedEffect(Unit) {
+        viewModel.init(context, patchSuccessMsg, patchFailedMsg, patchCancelledMsg)
     }
 
     Scaffold(
         topBar = {
             TopBar(
-                title = if (completed) completedStr else workingStr,
-                navigationIcon = { BackButton(navigator, enabled = completed && sfFile == null) }
+                title = if (viewModel.completed) completedStr else workingStr,
+                navigationIcon = { BackButton(navigator, enabled = viewModel.completed && viewModel.sfFile == null) }
             )
         }
     ) { innerPadding ->
@@ -186,23 +122,24 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                 .padding(innerPadding)
                 .fillMaxWidth()
         ) {
-            TextField(
-                value = log.joinToString("\n"),
-                onValueChange = {},
-                readOnly = true,
-                textStyle = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    lineHeight = TextUnit(1.4f, TextUnitType.Em)
-                ),
+            LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .verticalScroll(scrollState),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Unspecified,
-                    unfocusedIndicatorColor = Color.Unspecified
-                )
-            )
+                    .padding(horizontal = 16.dp)
+            ) {
+                items(viewModel.log) { line ->
+                    Text(
+                        text = line,
+                        style = TextStyle(
+                            fontFamily = FontFamily.Monospace,
+                            lineHeight = TextUnit(1.4f, TextUnitType.Em),
+                            fontSize = TextUnit(12f, TextUnitType.Sp)
+                        )
+                    )
+                }
+            }
             Column(
                 modifier = Modifier
                     .bottomControlsPadding()
@@ -212,7 +149,7 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                         .fillMaxWidth()
                 ) {
                     Text(
-                        text = currentTask,
+                        text = viewModel.currentTask,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .weight(1f),
@@ -221,12 +158,12 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                     )
                     Spacer(Modifier.width(16.dp))
                     Text(
-                        text = if (progress < 0) "¯\\_(ツ)_/¯" else "${(progress * 100).toInt()}%",
+                        text = if (viewModel.progress < 0) "¯\\_(ツ)_/¯" else "${(viewModel.progress * 100).toInt()}%",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
                 Spacer(Modifier.height(8.dp))
-                if (progress < 0) {
+                if (viewModel.progress < 0) {
                     // Indeterminate
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
@@ -234,7 +171,7 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                 }
                 else {
                     LinearProgressIndicator(
-                        progress = progress,
+                        progress = { viewModel.progress },
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
@@ -242,7 +179,7 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                 Row(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (!completed) {
+                    if (!viewModel.completed) {
                         ElevatedButton(
                             onClick = {
                                 PatcherLauncher.cancelPatcher()
@@ -256,7 +193,7 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                             )
                             Text(text = stringResource(R.string.stop_patching_and_cleanup))
                         }
-                    } else if (sfFile == null) {
+                    } else if (viewModel.sfFile == null) {
                         ElevatedButton(
                             onClick = {
                                 val intent = context.packageManager.getLaunchIntentForPackage("jp.co.cygames.umamusume")
@@ -267,7 +204,7 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = isSuccess
+                            enabled = viewModel.isSuccess
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.PlayArrow,

@@ -31,7 +31,6 @@ import com.reandroid.archive.FileInputSource
 import com.reandroid.archive.ZipEntryMap
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import net.lingala.zip4j.ZipFile
@@ -69,24 +68,22 @@ class AppPatcher(
     private val directInstall: Boolean,
     private val shizukuInstall: Boolean
 ): Patcher() {
-    override fun run(context: Context): Boolean {
+    override suspend fun run(context: Context): Boolean {
         try {
             if (directInstall && !isDirectInstallAllowed(context))
                 return false
 
-            val libVer = runBlocking { syncModLibs(context) } ?: return false
+            val libVer = syncModLibs(context) ?: return false
             log(context.getString(R.string.using_app_lib_ver).format(libVer))
 
             if (directInstall)
                 return runDirectInstall(context)
 
             if (fileUris.size == 1) {
-                return runBlocking {
-                    runXapkOrFullApk(context, (copyInputFiles(context) ?: return@runBlocking false)[0])
-                }
+                return runXapkOrFullApk(context, (copyInputFiles(context) ?: return false)[0])
             }
             else if (fileUris.size > 1) {
-                return runBlocking { runSplitApks(context) }
+                return runSplitApks(context)
             }
 
             return false
@@ -310,7 +307,7 @@ class AppPatcher(
                 val processedSplits = mutableMapOf<SplitApkType, Boolean>()
                 for (zip in zipFiles) {
                     try {
-                        if (!runBlocking { patchApk(context, zip, processedSplits) }) {
+                        if (!patchApk(context, zip, processedSplits)) {
                             success = false
                             return@useZipExtractors
                         }
@@ -340,7 +337,7 @@ class AppPatcher(
         return res
     }
 
-    private fun useZipExtractors(files: Array<File>, callback: (Array<ZipExtractor>) -> Unit) {
+    private inline fun useZipExtractors(files: Array<File>, callback: (Array<ZipExtractor>) -> Unit) {
         val zipFiles = Array(files.size) {
             ZipExtractor.maybeMapped(files[it])
         }
@@ -732,10 +729,10 @@ class AppPatcher(
         if (modSource == "local") {
             val customUriStr = context.getPrefValue(PrefKey.CUSTOM_MOD_SO_URI) as String
             if (customUriStr.isEmpty()) {
-                log("Error: Local library chosen but no file is selected.")
+                log(context.getString(R.string.error_local_library_no_file))
                 return null
             }
-            log("Using local library...")
+            log(context.getString(R.string.using_local_library))
             try {
                 val customUri = Uri.parse(customUriStr)
                 context.contentResolver.openInputStream(customUri).use { input ->
@@ -749,11 +746,11 @@ class AppPatcher(
                 context.dataStore.edit { preferences ->
                     preferences[PrefKey.APP_LIBS_VERSION] = detectedVer
                 }
-                log("Local library loaded successfully!")
+                log(context.getString(R.string.local_library_loaded))
                 return detectedVer
             } catch (ex: Exception) {
                 Log.e("AppPatcher", "Failed to load local library", ex)
-                log("Failed to load local library: ${ex.message}")
+                log(context.getString(R.string.error_local_library_load_failed).format(ex.message))
                 return null
             }
         }

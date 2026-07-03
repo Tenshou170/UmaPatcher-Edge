@@ -18,100 +18,42 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.datastore.preferences.core.MutablePreferences
-import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.R
-import dev.LeadRDRK.UmaPatcherEdge.core.PrefKey
-import dev.LeadRDRK.UmaPatcherEdge.core.dataStore
 import dev.LeadRDRK.UmaPatcherEdge.core.defaultValues
-import dev.LeadRDRK.UmaPatcherEdge.core.getPrefValue
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BooleanOption
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BottomBarScrollSpacer
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.OptionBase
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.StringOption
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.TopBar
-import dev.LeadRDRK.UmaPatcherEdge.ui.component.rememberDataStoreStringState
 import dev.LeadRDRK.UmaPatcherEdge.utils.ksFile
 import dev.LeadRDRK.UmaPatcherEdge.utils.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 
 @Destination
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+    viewModel: SettingsViewModel = viewModel()
+) {
     val context = LocalContext.current
-    val checkForUpdates = remember { mutableStateOf(false) }
-    val appLibsVersion = remember { mutableStateOf("") }
-    var configRead by remember { mutableStateOf(false) }
-
-    val repoState = rememberDataStoreStringState(
-        key = PrefKey.HACHIMI_REPO,
-        defaultValue = defaultValues[PrefKey.HACHIMI_REPO] as String
-    )
 
     val exportKsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val uri = it.data?.data ?: return@rememberLauncherForActivityResult
-        val ksFile = context.ksFile
-        if (!ksFile.exists()) return@rememberLauncherForActivityResult
-
-        context.contentResolver.openOutputStream(uri).use { output ->
-            if (output == null) {
-                context.showToast(
-                    context.getString(R.string.failed_to_save_file),
-                    Toast.LENGTH_SHORT
-                )
-                return@use
-            }
-            ksFile.inputStream().use { input ->
-                input.copyTo(output)
-                context.showToast(
-                    context.getString(R.string.file_saved),
-                    Toast.LENGTH_SHORT
-                )
-            }
-        }
+        viewModel.exportKeystore(context, uri)
     }
 
     val importKsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val uri = it.data?.data ?: return@rememberLauncherForActivityResult
-
-        context.contentResolver.openInputStream(uri).use { input ->
-            if (input == null) {
-                context.showToast(
-                    context.getString(R.string.failed_to_import_keystore),
-                    Toast.LENGTH_SHORT
-                )
-                return@use
-            }
-            context.ksFile.outputStream().use { output ->
-                input.copyTo(output)
-                context.showToast(
-                    context.getString(R.string.keystore_imported),
-                    Toast.LENGTH_SHORT
-                )
-            }
-        }
+        viewModel.importKeystore(context, uri)
     }
 
-    @Composable
-    fun PrefUpdateEffect(key: Any?, transform: suspend (MutablePreferences) -> Unit) {
-        LaunchedEffect(key) {
-            if (!configRead) return@LaunchedEffect
-            context.dataStore.edit(transform)
-        }
+    LaunchedEffect(viewModel.appLibsVersion) {
+        if (!viewModel.configRead) return@LaunchedEffect
+        viewModel.saveAppLibsVersion(context, viewModel.appLibsVersion)
     }
 
-    PrefUpdateEffect(checkForUpdates.value) {
-        it[PrefKey.CHECK_FOR_UPDATES] = checkForUpdates.value
-    }
-
-    PrefUpdateEffect(appLibsVersion.value) {
-        it[PrefKey.APP_LIBS_VERSION] = appLibsVersion.value
-    }
-
-    LaunchedEffect(true) {
-        checkForUpdates.value = context.getPrefValue(PrefKey.CHECK_FOR_UPDATES) as Boolean
-        appLibsVersion.value = context.getPrefValue(PrefKey.APP_LIBS_VERSION) as String
-        configRead = true
+    LaunchedEffect(Unit) {
+        viewModel.loadConfig(context)
     }
 
     Scaffold(
@@ -124,18 +66,20 @@ fun SettingsScreen() {
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            if (!configRead) return@Column
+            if (!viewModel.configRead) return@Column
 
             BooleanOption(
                 title = stringResource(R.string.check_for_updates),
                 desc = stringResource(R.string.check_for_updates_desc),
-                state = checkForUpdates
+                value = viewModel.checkForUpdates,
+                onCheckedChange = { viewModel.updateCheckForUpdates(context, it) }
             )
 
             StringOption(
                 title = stringResource(R.string.hachimi_repo),
-                state = repoState,
-                placeholder = defaultValues[PrefKey.HACHIMI_REPO] as String
+                value = viewModel.hachimiRepo,
+                placeholder = "LeadRDRK/Hachimi-Edge", // Updated default placeholder if needed
+                onValueChange = { viewModel.updateHachimiRepo(context, it) }
             )
 
             OptionBase(
@@ -183,7 +127,7 @@ fun SettingsScreen() {
                         context.getString(R.string.force_redownload_mod_notice),
                         Toast.LENGTH_SHORT
                     )
-                    appLibsVersion.value = ""
+                    viewModel.forceRedownloadMod()
                 }
             ) {
             }

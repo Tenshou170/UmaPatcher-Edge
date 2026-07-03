@@ -11,17 +11,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -36,10 +40,17 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 @Destination
 @Composable
-fun AppSelectScreen(navigator: DestinationsNavigator) {
+fun AppSelectScreen(
+    navigator: DestinationsNavigator,
+    viewModel: AppSelectViewModel = viewModel()
+) {
     val context = LocalContext.current
     val pm = context.packageManager
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        viewModel.loadApps(pm)
+    }
 
     Scaffold(
         topBar = {
@@ -49,14 +60,13 @@ fun AppSelectScreen(navigator: DestinationsNavigator) {
             )
         }
     ) { innerPadding ->
+        val apps by viewModel.apps.collectAsState()
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            for (packageInfo in GameChecker.getAllPackageInfo(pm)) {
-                if (packageInfo == null) continue
-
+            for (packageInfo in apps) {
                 val appInfo = pm.getApplicationInfo(packageInfo.packageName, 0)
                 AppEntry(
                     appName = pm.getApplicationLabel(appInfo).toString(),
@@ -122,6 +132,6 @@ fun AppEntry(
                 )
             }
         }
-        Divider()
+        HorizontalDivider()
     }
 }

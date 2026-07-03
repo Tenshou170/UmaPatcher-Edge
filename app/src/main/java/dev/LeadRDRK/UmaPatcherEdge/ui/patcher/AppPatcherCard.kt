@@ -30,34 +30,56 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.R
 import dev.LeadRDRK.UmaPatcherEdge.MainActivity
+import dev.LeadRDRK.UmaPatcherEdge.MainViewModel
 import dev.LeadRDRK.UmaPatcherEdge.patcher.AppPatcher
 import dev.LeadRDRK.UmaPatcherEdge.shizuku.ShizukuState
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.RadioGroupOption
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.SimpleOkCancelDialog
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import rikka.shizuku.Shizuku
+import com.topjohnwu.superuser.Shell
+
+private enum class InstallMethod {
+    SAVE,
+    NORMAL,
+    DIRECT,
+    SHIZUKU
+}
 
 @Composable
 fun AppPatcherCard(navigator: DestinationsNavigator) {
     var showShizukuRationaleDialog by remember { mutableStateOf(false) }
     var showShizukuNotAvailableDialog by remember { mutableStateOf(false) }
 
-    // Options
-    // 0=Save, 1=Normal, 2=Direct, 3=Shizuku
-    val installMethod = rememberSaveable { mutableIntStateOf(1) }
+    val context = LocalContext.current
+    val mainViewModel: MainViewModel = viewModel(context as MainActivity)
+    val isRootAvailable = mainViewModel.isRooted.value
+    val isShizukuAvailable by ShizukuState.isAvailable
+
+    val availableMethods = remember(isRootAvailable) {
+        mutableListOf(InstallMethod.SAVE, InstallMethod.NORMAL).apply {
+            if (isRootAvailable) add(InstallMethod.DIRECT)
+            add(InstallMethod.SHIZUKU)
+        }
+    }
+
+    val selectedMethodIndex = rememberSaveable { mutableIntStateOf(1) }
+    val currentMethod = availableMethods.getOrElse(selectedMethodIndex.intValue) { InstallMethod.NORMAL }
+
     var fileUris by rememberSaveable { mutableStateOf<Array<Uri>>(arrayOf()) }
     val fileSelectLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         fileUris = uris.toTypedArray()
     }
-    val isShizukuAvailable by ShizukuState.isAvailable
 
-    LaunchedEffect(navigator, installMethod.intValue, fileUris) {
+    LaunchedEffect(navigator, currentMethod, fileUris) {
         MainActivity.onShizukuPermissionResult = { grantResult ->
             if (grantResult == PackageManager.PERMISSION_GRANTED) {
                 PatcherLauncher.launch(
@@ -106,9 +128,9 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         label = stringResource(R.string.app_patcher_label),
         icon = { Icon(painterResource(R.drawable.ic_apk_install), null) },
         buttons = {
-            val isShizukuOptionSelected = installMethod.intValue == 3
-            val isButtonEnabled = when {
-                installMethod.intValue == 2 -> true
+            val isShizukuOptionSelected = currentMethod == InstallMethod.SHIZUKU
+            val isButtonEnabled = when (currentMethod) {
+                InstallMethod.DIRECT -> true
                 else -> fileUris.isNotEmpty()
             }
 
@@ -135,9 +157,9 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                         PatcherLauncher.launch(
                             navigator,
                             AppPatcher(
-                                fileUris = if (installMethod.intValue == 2) arrayOf() else fileUris,
-                                install = installMethod.intValue == 1,
-                                directInstall = installMethod.intValue == 2,
+                                fileUris = if (currentMethod == InstallMethod.DIRECT) arrayOf() else fileUris,
+                                install = currentMethod == InstallMethod.NORMAL,
+                                directInstall = currentMethod == InstallMethod.DIRECT,
                                 shizukuInstall = false
                             )
                         )
@@ -154,20 +176,22 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         RadioGroupOption(
             title = stringResource(R.string.install_method),
             desc = stringResource(R.string.install_method_desc),
-            choices = arrayOf(
-                stringResource(R.string.save_patched_file),
-                stringResource(R.string.normal_install),
-                stringResource(R.string.direct_install),
-                stringResource(R.string.shizuku_install)
-            ),
-            state = installMethod,
+            choices = availableMethods.map { method ->
+                when (method) {
+                    InstallMethod.SAVE -> stringResource(R.string.save_patched_file)
+                    InstallMethod.NORMAL -> stringResource(R.string.normal_install)
+                    InstallMethod.DIRECT -> stringResource(R.string.direct_install)
+                    InstallMethod.SHIZUKU -> stringResource(R.string.shizuku_install)
+                }
+            }.toTypedArray(),
+            state = selectedMethodIndex,
             choiceContent = { index, text ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = text,
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    if(index == 3) {
+                    if(availableMethods[index] == InstallMethod.SHIZUKU) {
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = shizukuStatusText,
@@ -178,7 +202,7 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                 }
             }
         )
-        if (installMethod.intValue != 2) {
+        if (currentMethod != InstallMethod.DIRECT) {
             Spacer(Modifier.height(16.dp))
             ElevatedCard(
                 colors = CardDefaults.elevatedCardColors(

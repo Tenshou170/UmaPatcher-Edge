@@ -83,6 +83,7 @@
     <string name="update_available_desc">有新版本可用：%s\n要打开下载页面吗？</string>
     <string name="failed_to_check_for_updates">检查更新失败</string>
     <string name="no_updates_available">没有可用更新</string>
+
     <string name="shizuku_install">通过 Shizuku 安装</string>
     <string name="shizuku_install_available">(可用)</string>
     <string name="shizuku_install_unavailable">(不可用)</string>    
@@ -100,6 +101,7 @@
     <string name="shizuku_install_fail">Shizuku 安装失败: %s</string>
     <string name="shizuku_install_error">Shizuku 安装失败并出现异常: %s</string>
     <string name="shizuku_install_fail_unexpected">服务意外断开连接。</string>
+
     <string name="plugins_title">插件</string>
     <string name="add_plugin">添加插件</string>
     <string name="remove_plugin">移除</string>
@@ -107,9 +109,15 @@
     <string name="plugin_added">已添加插件。</string>
     <string name="plugin_removed">已移除插件。</string>
     <string name="failed_to_add_plugin">添加插件失败。</string>
-    <string name="plugins_patched">已补丁插件：%s</string>
     <string name="plugin_warning">警告：插件可能窃取游戏账号或执行恶意代码。仅从可信来源安装。</string>
+    <string name="plugins_patched">已补丁插件：%s</string>
     <string name="failed_to_install_plugin">安装插件失败：%s</string>
+
+    <!-- AppPatcher -->
+    <string name="using_local_library">正在使用本地库...</string>
+    <string name="local_library_loaded">本地库加载成功！</string>
+    <string name="error_local_library_no_file">错误：选择了本地库但未选择文件。</string>
+    <string name="error_local_library_load_failed">加载本地库失败：%s</string>
 
     <!-- 本地 Hachimi 来源配置 -->
     <string name="hachimi_mod_source">Hachimi 来源</string>
@@ -119,4 +127,10 @@
     <string name="use_custom_mod_lib">本地库文件</string>
     <string name="tap_to_select_mod_lib">点击此处选择本地 .so 文件</string>
     <string name="custom_mod_lib_selected">已选择：%s</string>
+    <string name="custom_so_supported_files">支持的文件：.so</string>
+
+    <!-- Patching screen actions -->
+    <string name="stop_patching_and_cleanup">停止补丁</string>
+    <string name="launch_game">开始游戏</string>
+    <string name="patching_cancelled_by_user">用户已取消补丁</string>
 </resources>

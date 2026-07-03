@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -109,7 +109,7 @@ fun OptionBase(
             Spacer(Modifier.width(16.dp))
             content()
         }
-        Divider()
+        HorizontalDivider()
     }
 }
 
@@ -134,20 +134,24 @@ fun OptionTitleAndDesc(
 fun BooleanOption(
     title: String,
     desc: String,
-    state: MutableState<Boolean>,
+    value: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
     enabled: Boolean = true
 ) {
     OptionBase(
         title = title,
         desc = desc,
         onClick = {
-            if (enabled)
-                state.value = !state.value
+            if (enabled) {
+                onCheckedChange(!value)
+            }
         }
     ) {
         Switch(
-            checked = state.value,
-            onCheckedChange = { state.value = it },
+            checked = value,
+            onCheckedChange = {
+                onCheckedChange(it)
+            },
             enabled = enabled
         )
     }
@@ -156,21 +160,22 @@ fun BooleanOption(
 @Composable
 fun StringOption(
     title: String,
-    state: MutableState<String>,
+    value: String,
+    onValueChange: (String) -> Unit,
     placeholder: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions()
 ) {
     var openDialog by remember { mutableStateOf(false) }
     OptionBase(
         title = title,
-        desc = state.value,
+        desc = value,
         onClick = { openDialog = true }
     ) {}
 
-    var tmpValue by remember { mutableStateOf(state.value) }
+    var tmpValue by remember { mutableStateOf(value) }
     LaunchedEffect(openDialog) {
         // Reset value every time dialog is reopened
-        tmpValue = state.value
+        tmpValue = value
     }
 
     if (openDialog) {
@@ -178,7 +183,9 @@ fun StringOption(
             title = title,
             onClose = { ok ->
                 openDialog = false
-                if (ok) state.value = tmpValue
+                if (ok) {
+                    onValueChange(tmpValue)
+                }
             }
         ) {
             TextField(
@@ -213,7 +220,8 @@ fun IntOption(
 
     StringOption(
         title = title,
-        state = strValue,
+        value = strValue.value,
+        onValueChange = { strValue.value = it },
         placeholder = placeholder,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
     )
@@ -265,6 +273,6 @@ fun RadioGroupOption(
             }
             Spacer(Modifier.height(8.dp))
         }
-        Divider()
+        HorizontalDivider()
     }
 }
