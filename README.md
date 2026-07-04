@@ -6,7 +6,7 @@
   <p>
     <a href="https://github.com/Tenshou170/UmaPatcher-Edge/releases"><img src="https://img.shields.io/github/v/release/Tenshou170/UmaPatcher-Edge?color=brightgreen&logo=github&style=for-the-badge" alt="Latest Release"></a>
     <a href="https://developer.android.com/"><img src="https://img.shields.io/badge/Android-7.0+-3DDC84?logo=android&logoColor=white&style=for-the-badge" alt="Android Support"></a>
-    <a href="https://kotlinlang.org/"><img src="https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?logo=kotlin&logoColor=white&style=for-the-badge" alt="Kotlin Version"></a>
+    <a href="https://kotlinlang.org/"><img src="https://img.shields.io/badge/Kotlin-2.1.0-7F52FF?logo=kotlin&logoColor=white&style=for-the-badge" alt="Kotlin Version"></a>
   </p>
   <p>
     <a href="https://discord.gg/YjBgmuqqYr"><img src="https://dcbadge.limes.pink/api/server/https://discord.gg/YjBgmuqqYr" alt="Discord Server"></a>
