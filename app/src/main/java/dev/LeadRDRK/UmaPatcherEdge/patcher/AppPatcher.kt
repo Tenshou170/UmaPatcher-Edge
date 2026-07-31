@@ -674,47 +674,87 @@ class AppPatcher(
         assets.find { it["name"] as String == name }?.get("browser_download_url") as String?
 
     private fun getHachimiVersionFromSo(soFile: File): String? {
+        if (!soFile.exists()) return null
+        return tryNewVersionMarker(soFile) ?: tryLegacyVersionMarker(soFile)
+    }
+
+    /**
+     * New method (Hachimi-Edge post-initial-release):
+     * Scans for the explicit static marker "HACHIMI_VERSION:" written by
+     * the #[used] #[no_mangle] static in lib.rs. Guaranteed by the linker
+     * regardless of LTO or rodata layout changes.
+     * Version is already prefixed with 'v' inside the marker value.
+     */
+    private fun tryNewVersionMarker(soFile: File): String? {
         try {
-            if (!soFile.exists()) return null
-            val target = "hachimiv".toByteArray(Charsets.US_ASCII)
+            val target = "HACHIMI_VERSION:".toByteArray(Charsets.US_ASCII)
             soFile.inputStream().use { input ->
                 val stream = java.io.BufferedInputStream(input)
-                val targetSize = target.size
                 var matchIndex = 0
-                
+
                 var b: Int
                 while (stream.read().also { b = it } != -1) {
                     if (b.toByte() == target[matchIndex]) {
                         matchIndex++
-                        if (matchIndex == targetSize) {
-                            // Found "hachimiv"! Now read up to 100 printable ASCII bytes
+                        if (matchIndex == target.size) {
                             val sb = StringBuilder()
                             for (i in 0 until 100) {
-                                val nextByte = stream.read()
-                                if (nextByte == -1 || nextByte == 0 || nextByte < 32 || nextByte > 126) {
-                                    break
-                                }
-                                sb.append(nextByte.toChar())
+                                val next = stream.read()
+                                if (next == -1 || next == 0 || next < 32 || next > 126) break
+                                sb.append(next.toChar())
                             }
-                            val rawStr = sb.toString()
-                            val regex = Regex("^([0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-fA-F0-9]{7,12})?(?:-dirty)?)")
-                            val matchResult = regex.find(rawStr)
-                            if (matchResult != null) {
-                                return "v" + matchResult.groupValues[1]
-                            }
+                            val regex = Regex("^(v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-zA-Z0-9]+)*)")
+                            val match = regex.find(sb.toString())
+                            if (match != null) return match.groupValues[1]
                             matchIndex = 0
                         }
                     } else {
-                        if (b.toByte() == target[0]) {
-                            matchIndex = 1
-                        } else {
-                            matchIndex = 0
-                        }
+                        matchIndex = if (b.toByte() == target[0]) 1 else 0
                     }
                 }
             }
         } catch (e: Exception) {
-            Log.e("HachimiVersion", "Failed to detect Hachimi version", e)
+            Log.e("HachimiVersion", "New marker scan failed", e)
+        }
+        return null
+    }
+
+    /**
+     * Legacy method (older Hachimi-Edge forks):
+     * Scans for the incidental rodata adjacency of "hachimi" + "v<version>",
+     * which produced the byte sequence "hachimiv..." in older builds.
+     * Kept for compatibility with forks that don't have the explicit marker.
+     */
+    private fun tryLegacyVersionMarker(soFile: File): String? {
+        try {
+            val target = "hachimiv".toByteArray(Charsets.US_ASCII)
+            soFile.inputStream().use { input ->
+                val stream = java.io.BufferedInputStream(input)
+                var matchIndex = 0
+
+                var b: Int
+                while (stream.read().also { b = it } != -1) {
+                    if (b.toByte() == target[matchIndex]) {
+                        matchIndex++
+                        if (matchIndex == target.size) {
+                            val sb = StringBuilder()
+                            for (i in 0 until 100) {
+                                val next = stream.read()
+                                if (next == -1 || next == 0 || next < 32 || next > 126) break
+                                sb.append(next.toChar())
+                            }
+                            val regex = Regex("^([0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-fA-F0-9]{7,12})?(?:-dirty)?)")
+                            val match = regex.find(sb.toString())
+                            if (match != null) return "v" + match.groupValues[1]
+                            matchIndex = 0
+                        }
+                    } else {
+                        matchIndex = if (b.toByte() == target[0]) 1 else 0
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("HachimiVersion", "Legacy marker scan failed", e)
         }
         return null
     }
