@@ -1,6 +1,7 @@
 package dev.LeadRDRK.UmaPatcherEdge.ui.screen
 
 import android.content.Intent
+import dev.LeadRDRK.UmaPatcherEdge.core.GameChecker
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -196,7 +197,10 @@ fun PatchingScreen(
                     } else if (viewModel.sfFile == null) {
                         ElevatedButton(
                             onClick = {
-                                val intent = context.packageManager.getLaunchIntentForPackage("jp.co.cygames.umamusume")
+                                val targetPackage = GameChecker.currentPackageName ?: "jp.co.cygames.umamusume"
+                                val intent = context.packageManager.getLaunchIntentForPackage(targetPackage)?.apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                }
                                 if (intent != null) {
                                     context.startActivity(intent)
                                 } else {
