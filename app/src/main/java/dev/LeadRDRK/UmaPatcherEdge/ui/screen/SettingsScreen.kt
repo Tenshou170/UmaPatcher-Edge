@@ -1,6 +1,5 @@
 package dev.LeadRDRK.UmaPatcherEdge.ui.screen
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,16 +10,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.R
-import dev.LeadRDRK.UmaPatcherEdge.core.defaultValues
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BooleanOption
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BottomBarScrollSpacer
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.OptionBase
@@ -37,13 +31,13 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
 
-    val exportKsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val uri = it.data?.data ?: return@rememberLauncherForActivityResult
+    val exportKsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("*/*")) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
         viewModel.exportKeystore(context, uri)
     }
 
-    val importKsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val uri = it.data?.data ?: return@rememberLauncherForActivityResult
+    val importKsLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
         viewModel.importKeystore(context, uri)
     }
 
@@ -78,7 +72,7 @@ fun SettingsScreen(
             StringOption(
                 title = stringResource(R.string.hachimi_repo),
                 value = viewModel.hachimiRepo,
-                placeholder = "LeadRDRK/Hachimi-Edge", // Updated default placeholder if needed
+                placeholder = "Tenshou170/Hachimi-Edge",
                 onValueChange = { viewModel.updateHachimiRepo(context, it) }
             )
 
@@ -87,15 +81,8 @@ fun SettingsScreen(
                 desc = stringResource(R.string.export_signing_key_desc),
                 onClick = {
                     if (context.ksFile.exists()) {
-                        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-                            .apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                type = "*/*"
-                                putExtra(Intent.EXTRA_TITLE, "UmaPatcher.bks")
-                            }
-                        exportKsLauncher.launch(intent)
-                    }
-                    else {
+                        exportKsLauncher.launch("Uma-Key.bks")
+                    } else {
                         context.showToast(
                             context.getString(R.string.no_keystore_to_export),
                             Toast.LENGTH_SHORT
@@ -109,12 +96,7 @@ fun SettingsScreen(
                 title = stringResource(R.string.import_signing_key),
                 desc = stringResource(R.string.import_signing_key_desc),
                 onClick = {
-                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                        .apply {
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "*/*"
-                        }
-                    importKsLauncher.launch(intent)
+                    importKsLauncher.launch(arrayOf("*/*"))
                 }
             ) {
             }

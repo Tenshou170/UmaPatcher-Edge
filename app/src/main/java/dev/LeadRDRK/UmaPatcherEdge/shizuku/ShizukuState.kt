@@ -15,8 +15,8 @@ object ShizukuState {
     }
 
     fun init() {
+        isAvailable.value = Shizuku.pingBinder()
         Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
         Shizuku.addBinderDeadListener(binderDeadListener)
     }
-
 }
