@@ -372,13 +372,11 @@ class AppPatcher(
         zip: ZipExtractor,
         processedSplits: MutableMap<SplitApkType, Boolean>? = null
     ): Boolean {
-        // Build do not compress list
         val doNotCompress = zip.fileHeaders
             .filter { it.compressionMethod == CompressionMethod.STORE }
             .map { it.fileName }
-            .toSet()
+            .toSet() + setOf(APK_ORIG_ARM64_LIB_PATH)
 
-        // Extract file
         val file = zip.file
         val filename = file.name
 
@@ -387,13 +385,11 @@ class AppPatcher(
         zip.close()
         file.delete()
 
-        // Check manifest
         if (!extractDir.resolve("AndroidManifest.xml").isFile) {
             log(context.getString(R.string.invalid_apk_file_name).format(filename))
             return false
         }
 
-        // Detect apk type / Patch the lib files
         task = context.getString(R.string.patching)
         progress = -1f
 
@@ -467,13 +463,11 @@ class AppPatcher(
             return false
         }
 
-        // Check if libs are patched if this is a full apk
         if (processedSplits == null && !libPatched) {
             log(context.getString(R.string.apk_files_missing_lib))
             return false
         }
 
-        // Create new apk file
         task = context.getString(R.string.creating_file).format(filename)
         progress = -1f
 
@@ -504,7 +498,6 @@ class AppPatcher(
         apkWriter.write()
         apkWriter.close()
 
-        // Sign APK file
         task = context.getString(R.string.signing_apk_file).format(filename)
         progress = -1f
 
@@ -516,7 +509,6 @@ class AppPatcher(
             return false
         }
 
-        // we're finally done :')
         return true
     }
 
@@ -804,7 +796,6 @@ class AppPatcher(
         val currentVer = context.getPrefValue(PrefKey.APP_LIBS_VERSION) as String?
         val modRepo = context.getPrefValue(PrefKey.HACHIMI_REPO) as String
 
-        // Try syncing the libraries
         try {
             val releases = GitHubReleases(modRepo)
             val latest = releases.fetchLatest()
@@ -813,7 +804,6 @@ class AppPatcher(
             val arm64Lib = context.modArm64Lib
 
             if (tagName == currentVer && arm64Lib.exists()) {
-                // Already up to date
                 return tagName
             }
 
@@ -827,10 +817,8 @@ class AppPatcher(
                 throw RuntimeException("SHA256 hash asset not found")
             )
 
-            // First fetch the sha256 json
             val hashes = fetchJson(sha256Url)
 
-            // Download the libraries to temporary files
             val workDir = context.workDir
             val arm64LibTmp = workDir.resolve(MOD_ARM64_LIB_NAME)
 
@@ -840,17 +828,14 @@ class AppPatcher(
                 progress = it
             })
 
-            // Check their hashes
             if (arm64Sha256 != hashes[MOD_ARM64_LIB_NAME]) {
                 log(context.getString(R.string.corrupted_file_abort_download))
                 arm64LibTmp.delete()
                 throw IOException()
             }
 
-            // Move the files to their destination
             arm64LibTmp.renameTo(arm64Lib) || throw RuntimeException("Failed to move ARM64 lib")
 
-            // Update version string
             context.dataStore.edit { preferences ->
                 preferences[PrefKey.APP_LIBS_VERSION] = tagName
             }
@@ -861,7 +846,6 @@ class AppPatcher(
         catch (ex: Exception) {
             Log.e("AppPatcher", "Exception", ex)
 
-            // If libraries are already downloaded then let it continue
             if (currentVer != null) {
                 log(context.getString(R.string.failed_to_sync_app_libs))
                 return currentVer
