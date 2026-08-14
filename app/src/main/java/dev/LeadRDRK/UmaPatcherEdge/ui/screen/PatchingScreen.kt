@@ -5,6 +5,10 @@ import dev.LeadRDRK.UmaPatcherEdge.core.GameChecker
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -68,6 +72,7 @@ fun PatchingScreen(
     val completedStr = stringResource(R.string.completed)
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val patchSuccessMsg = stringResource(R.string.patch_success_msg)
     val patchFailedMsg = stringResource(R.string.patch_failed_msg)
@@ -197,14 +202,38 @@ fun PatchingScreen(
                     } else if (viewModel.sfFile == null) {
                         ElevatedButton(
                             onClick = {
-                                val targetPackage = GameChecker.currentPackageName ?: "jp.co.cygames.umamusume"
-                                val intent = context.packageManager.getLaunchIntentForPackage(targetPackage)?.apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                                }
-                                if (intent != null) {
-                                    context.startActivity(intent)
-                                } else {
-                                    android.widget.Toast.makeText(context, R.string.game_not_installed, android.widget.Toast.LENGTH_SHORT).show()
+                                coroutineScope.launch(Dispatchers.IO) {
+
+                                    val pm = context.packageManager
+                                    GameChecker.init(pm)
+                                    var targetPackage = GameChecker.currentPackageName
+                                        ?: "jp.co.cygames.umamusume"
+
+                                    var intent = pm.getLaunchIntentForPackage(targetPackage)?.apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                    }
+                                    var retries = 3
+                                    while (intent == null && retries-- > 0) {
+                                        delay(500)
+                                        GameChecker.init(pm)
+                                        targetPackage = GameChecker.currentPackageName
+                                            ?: targetPackage
+                                        intent = pm.getLaunchIntentForPackage(targetPackage)?.apply {
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                        }
+                                    }
+
+                                    withContext(Dispatchers.Main) {
+                                        if (intent != null) {
+                                            context.startActivity(intent)
+                                        } else {
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                R.string.game_not_installed,
+                                                android.widget.Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
