@@ -47,7 +47,7 @@ class PatchingViewModel : ViewModel() {
     }
 
     fun init(context: Context, patchSuccessMsg: String, patchFailedMsg: String, patchCancelledMsg: String) {
-        if (PatcherLauncher.patching) return
+        if (completed || PatcherLauncher.patching) return
         
         val workingStr = context.getString(R.string.working)
         if (currentTask.isEmpty()) currentTask = workingStr

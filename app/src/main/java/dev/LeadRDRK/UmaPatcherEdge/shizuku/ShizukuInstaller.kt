@@ -27,6 +27,14 @@ object ShizukuInstaller {
         }
 
         return suspendCancellableCoroutine { continuation ->
+            val resumed = java.util.concurrent.atomic.AtomicBoolean(false)
+
+            fun resumeOnce(result: Boolean) {
+                if (resumed.compareAndSet(false, true)) {
+                    continuation.resume(result)
+                }
+            }
+
             val serviceConnection = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName, service: IBinder) {
                     if (!continuation.isActive) return
@@ -40,22 +48,24 @@ object ShizukuInstaller {
 
                             if (result == null) {
                                 patcher.log(context.getString(R.string.shizuku_install_success))
-                                continuation.resume(true)
+                                resumeOnce(true)
                             } else {
                                 patcher.log(context.getString(R.string.shizuku_install_fail, result))
-                                continuation.resume(false)
+                                resumeOnce(false)
                             }
                         } catch (e: Exception) {
                             patcher.log(context.getString(R.string.shizuku_install_error, e.message))
-                            continuation.resume(false)
+                            resumeOnce(false)
+                        } finally {
+                            Shizuku.unbindUserService(userServiceArgs, this, true)
                         }
                     }
                 }
 
                 override fun onServiceDisconnected(name: ComponentName) {
-                    if (!continuation.isActive) return
+                    if (resumed.get()) return
                     patcher.log(context.getString(R.string.shizuku_install_fail_unexpected))
-                    continuation.resume(false)
+                    resumeOnce(false)
                 }
             }
 
@@ -65,5 +75,4 @@ object ShizukuInstaller {
             Shizuku.bindUserService(userServiceArgs, serviceConnection)
         }
     }
-
 }

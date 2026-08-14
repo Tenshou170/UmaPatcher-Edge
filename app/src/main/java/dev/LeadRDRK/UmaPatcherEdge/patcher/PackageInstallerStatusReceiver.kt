@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import androidx.core.content.IntentCompat
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -24,19 +25,23 @@ class PackageInstallerStatusReceiver : BroadcastReceiver() {
                 }
             }
             PackageInstaller.STATUS_SUCCESS -> {
-                contList.forEach { it.resume(true) }
+                val pending = contList.toList()
                 contList.clear()
+                pending.forEach { it.resume(true) }
             }
             else -> {
-                contList.forEach { it.resume(false) }
+                val pending = contList.toList()
                 contList.clear()
+                pending.forEach { it.resume(false) }
             }
         }
     }
 
     companion object {
-        val contList: MutableList<Continuation<Boolean>> = mutableListOf()
+        val contList: MutableList<Continuation<Boolean>> = CopyOnWriteArrayList()
+
         suspend fun waitForInstallFinish(): Boolean {
+            contList.clear()
             return suspendCoroutine { cont ->
                 contList.add(cont)
             }

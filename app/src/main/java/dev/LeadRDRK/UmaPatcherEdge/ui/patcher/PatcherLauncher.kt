@@ -10,8 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object PatcherLauncher {
-    var patcher: Patcher? = null
-    var patching = false
+    @Volatile var patcher: Patcher? = null
+    @Volatile var patching = false
 
     fun launch(navigator: DestinationsNavigator, patcher: Patcher) {
         if (patching) return
@@ -32,8 +32,10 @@ object PatcherLauncher {
         withContext(Dispatchers.IO) {
             activity.useKeepScreenOn {
                 patching = true
-                callback(patcher.safeRun(context))
+                val result = patcher.safeRun(context)
                 patching = false
+                this@PatcherLauncher.patcher = null
+                callback(result)
             }
         }
     }

@@ -127,7 +127,9 @@ public class InstallerService extends IInstallerService.Stub {
             });
 
             session.commit(intentSender);
-            latch.await();
+            if (!latch.await(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                return "Installation timed out: no result from PackageInstaller after 60s.";
+            }
             if (resultIntent[0] == null) {
                 return "Installation failed: no result from PackageInstaller.";
             }
