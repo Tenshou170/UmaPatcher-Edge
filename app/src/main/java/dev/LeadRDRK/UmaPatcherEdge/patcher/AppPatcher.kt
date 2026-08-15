@@ -279,15 +279,26 @@ class AppPatcher(
                 else context.getString(R.string.copying_file)
             progress = -1f
 
-            context.contentResolver.openInputStream(fileUris[it]).use { input ->
-                if (input == null) {
-                    log(context.getString(R.string.failed_to_read_file).format(filename))
-                    return null
-                }
+            try {
+                context.contentResolver.openInputStream(fileUris[it]).use { input ->
+                    if (input == null) {
+                        log(context.getString(R.string.failed_to_read_file).format(filename))
+                        return null
+                    }
 
-                file.outputStream().use { output ->
-                    input.copyTo(output)
+                    file.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
                 }
+            } catch (ex: Exception) {
+                log(context.getString(R.string.failed_to_read_file).format(filename))
+                logException(ex)
+                return null
+            }
+
+            if (!file.exists() || file.length() <= 0L) {
+                log(context.getString(R.string.failed_to_read_file).format(filename))
+                return null
             }
 
             file
@@ -488,28 +499,40 @@ class AppPatcher(
         val apk = ApkModule(zipEntryMap)
         var writtenFiles = 0
         val apkWriter = apk.createApkFileWriter(file)
-        apkWriter.setWriteProgress { path, _, _ ->
-            log(path)
-            progress = ++writtenFiles / fileCount.toFloat()
-        }
-        val aligner = com.reandroid.archive.writer.ZipAligner.apkAligner()
-        aligner.setFileAlignment(java.util.regex.Pattern.compile(".*\\.so$"), 16384)
-        apkWriter.zipAligner = aligner
-        apkWriter.write()
-        apkWriter.close()
-
-        task = context.getString(R.string.signing_apk_file).format(filename)
-        progress = -1f
-
         val signedApkFile = context.workDir.resolve("tmp_signed.apk")
-        val apkSigner = ApkSigner("UmaPatcher", "securep@ssw0rd816-n")
-        apkSigner.signApk(file, signedApkFile, context.ksFile)
-        if (!signedApkFile.renameTo(file)) {
-            log(context.getString(R.string.failed_to_move_file).format(signedApkFile.name))
-            return false
-        }
 
-        return true
+        try {
+            apkWriter.setWriteProgress { path, _, _ ->
+                log(path)
+                progress = ++writtenFiles / fileCount.toFloat()
+            }
+            val aligner = com.reandroid.archive.writer.ZipAligner.apkAligner()
+            aligner.setFileAlignment(java.util.regex.Pattern.compile(".*\\.so$"), 16384)
+            apkWriter.zipAligner = aligner
+            apkWriter.write()
+            apkWriter.close()
+
+            task = context.getString(R.string.signing_apk_file).format(filename)
+            progress = -1f
+
+            val apkSigner = ApkSigner("UmaPatcher", "securep@ssw0rd816-n")
+            apkSigner.signApk(file, signedApkFile, context.ksFile)
+            if (!signedApkFile.renameTo(file)) {
+                log(context.getString(R.string.failed_to_move_file).format(signedApkFile.name))
+                return false
+            }
+            return true
+        } catch (ex: Exception) {
+            logException(ex)
+            signedApkFile.delete()
+            return false
+        } finally {
+            try {
+                apkWriter.close()
+            } catch (_: Exception) {
+            }
+            signedApkFile.delete()
+        }
     }
 
     private fun installPlugins(context: Context, libDir: File, isDirectInstall: Boolean = false) {
@@ -614,25 +637,38 @@ class AppPatcher(
     private fun moveToExternalForShizuku(context: Context, files: Array<File>): Array<File>? {
         task = context.getString(R.string.shizuku_moving_files)
         progress = -1f
-        
+
         val externalDir = context.externalCacheDir?.resolve("shizuku") ?: run {
             log(context.getString(R.string.external_cache_unavailable))
             return null
         }
         externalDir.deleteRecursively()
-        externalDir.mkdirs()
+        if (!externalDir.mkdirs()) {
+            log(context.getString(R.string.external_cache_unavailable))
+            return null
+        }
 
+        val movedFiles = mutableListOf<File>()
         try {
-            return files.map { originalFile ->
+            for (originalFile in files) {
                 val destinationFile = externalDir.resolve(originalFile.name)
-                originalFile.copyTo(destinationFile, overwrite = true)
-                if(!destinationFile.exists()) {
-                    log(context.getString(R.string.copy_file_failed, destinationFile.path))
+                if (!originalFile.exists()) {
+                    log(context.getString(R.string.copy_file_failed, originalFile.path))
+                    return null
                 }
+
+                originalFile.copyTo(destinationFile, overwrite = true)
+                if (!destinationFile.exists() || destinationFile.length() <= 0L) {
+                    log(context.getString(R.string.copy_file_failed, destinationFile.path))
+                    return null
+                }
+
                 originalFile.delete()
-                destinationFile
-            }.toTypedArray()
+                movedFiles.add(destinationFile)
+            }
+            return movedFiles.toTypedArray()
         } catch (e: Exception) {
+            movedFiles.forEach { it.delete() }
             log(context.getString(R.string.shizuku_files_move_failed, e.message))
             logException(e)
             externalDir.deleteRecursively()

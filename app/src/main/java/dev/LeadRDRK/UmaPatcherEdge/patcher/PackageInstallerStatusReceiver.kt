@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import androidx.core.content.IntentCompat
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -40,10 +41,15 @@ class PackageInstallerStatusReceiver : BroadcastReceiver() {
     companion object {
         val contList: MutableList<Continuation<Boolean>> = CopyOnWriteArrayList()
 
-        suspend fun waitForInstallFinish(): Boolean {
+        suspend fun waitForInstallFinish(timeoutMs: Long = 60_000L): Boolean {
             contList.clear()
-            return suspendCoroutine { cont ->
-                contList.add(cont)
+            return withTimeoutOrNull(timeoutMs) {
+                suspendCoroutine<Boolean> { cont ->
+                    contList.add(cont)
+                }
+            } ?: run {
+                contList.clear()
+                false
             }
         }
     }
