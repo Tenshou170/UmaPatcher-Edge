@@ -21,6 +21,7 @@ class SettingsViewModel : ViewModel() {
     var checkForUpdates by mutableStateOf(false)
     var appLibsVersion by mutableStateOf("")
     var hachimiRepo by mutableStateOf("")
+    var mergeApks by mutableStateOf(false)
     var configRead by mutableStateOf(false)
 
     fun loadConfig(context: Context) {
@@ -28,6 +29,7 @@ class SettingsViewModel : ViewModel() {
             checkForUpdates = context.getPrefValue(PrefKey.CHECK_FOR_UPDATES) as Boolean
             appLibsVersion = context.getPrefValue(PrefKey.APP_LIBS_VERSION) as String
             hachimiRepo = context.getPrefValue(PrefKey.HACHIMI_REPO) as String
+            mergeApks = context.getPrefValue(PrefKey.MERGE_APKS) as Boolean
             configRead = true
         }
     }
@@ -36,6 +38,13 @@ class SettingsViewModel : ViewModel() {
         checkForUpdates = value
         viewModelScope.launch {
             context.dataStore.edit { it[PrefKey.CHECK_FOR_UPDATES] = value }
+        }
+    }
+
+    fun updateMergeApks(context: Context, value: Boolean) {
+        mergeApks = value
+        viewModelScope.launch {
+            context.dataStore.edit { it[PrefKey.MERGE_APKS] = value }
         }
     }
 

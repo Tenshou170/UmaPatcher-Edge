@@ -33,6 +33,9 @@ class PatchingViewModel : ViewModel() {
     var sfFile by mutableStateOf<File?>(null)
     var sfCallback: (Boolean) -> Unit = {}
 
+    var legacyFile by mutableStateOf<File?>(null)
+    var legacyCallback: (Boolean) -> Unit = {}
+
     private val logChannel = Channel<String>(Channel.UNLIMITED)
 
     init {
@@ -71,6 +74,12 @@ class PatchingViewModel : ViewModel() {
                 viewModelScope.launch(Dispatchers.Main) {
                     sfFile = file
                     sfCallback = callback
+                }
+            },
+            onInstallLegacy = { file, callback ->
+                viewModelScope.launch(Dispatchers.Main) {
+                    legacyFile = file
+                    legacyCallback = callback
                 }
             }
         )
@@ -133,5 +142,10 @@ class PatchingViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun handleLegacyInstallResult(success: Boolean) {
+        legacyCallback(success)
+        legacyFile = null
     }
 }

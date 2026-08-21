@@ -52,6 +52,8 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.R
+import dev.LeadRDRK.UmaPatcherEdge.patcher.LegacyInstaller
+import dev.LeadRDRK.UmaPatcherEdge.ui.component.SimpleOkCancelDialog
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.BackButton
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.TopBar
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.bottomControlsPadding
@@ -95,6 +97,75 @@ fun PatchingScreen(
         }
     }
 
+    val legacyInstallLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        viewModel.handleLegacyInstallResult(true)
+    }
+
+    val legacyPermLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        val file = viewModel.legacyFile
+        if (file == null) {
+            viewModel.handleLegacyInstallResult(false)
+            return@rememberLauncherForActivityResult
+        }
+        if (LegacyInstaller.canRequestPackageInstalls(context)) {
+            val intent = LegacyInstaller.buildInstallIntent(context, file)
+            try {
+                legacyInstallLauncher.launch(intent)
+            } catch (_: Exception) {
+                viewModel.handleLegacyInstallResult(false)
+            }
+        } else {
+            viewModel.handleLegacyInstallResult(false)
+        }
+    }
+
+    var showLegacyPermDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel.legacyFile) {
+        val file = viewModel.legacyFile
+        if (file != null) {
+            if (LegacyInstaller.canRequestPackageInstalls(context)) {
+                val intent = LegacyInstaller.buildInstallIntent(context, file)
+                try {
+                    legacyInstallLauncher.launch(intent)
+                } catch (_: Exception) {
+                    viewModel.handleLegacyInstallResult(false)
+                }
+            } else {
+                showLegacyPermDialog = true
+            }
+        }
+    }
+
+    if (showLegacyPermDialog) {
+        SimpleOkCancelDialog(
+            title = stringResource(R.string.legacy_install_unknown_sources_required),
+            onClose = { ok ->
+                showLegacyPermDialog = false
+                if (ok) {
+                    val permIntent = LegacyInstaller.pickUnknownSourcesIntent(context)
+                    if (permIntent != null) {
+                        try {
+                            legacyPermLauncher.launch(permIntent)
+                        } catch (_: Exception) {
+                            viewModel.handleLegacyInstallResult(false)
+                        }
+                    } else {
+                        viewModel.handleLegacyInstallResult(false)
+                    }
+                } else {
+                    viewModel.handleLegacyInstallResult(false)
+                }
+            }
+        ) {
+            Text(stringResource(R.string.legacy_install_unknown_sources_info))
+        }
+    }
+
     val lazyListState = rememberLazyListState()
     LaunchedEffect(viewModel.log.size) {
         if (viewModel.log.isNotEmpty()) {
@@ -104,7 +175,7 @@ fun PatchingScreen(
 
     val lifecycleOwner = LocalLifecycleOwner.current
     BackHandler {
-        if (viewModel.completed && viewModel.sfFile == null) {
+        if (viewModel.completed && viewModel.sfFile == null && viewModel.legacyFile == null) {
             safeNavigate(lifecycleOwner) {
                 navigator.popBackStack()
             }
@@ -119,7 +190,7 @@ fun PatchingScreen(
         topBar = {
             TopBar(
                 title = if (viewModel.completed) completedStr else workingStr,
-                navigationIcon = { BackButton(navigator, enabled = viewModel.completed && viewModel.sfFile == null) }
+                navigationIcon = { BackButton(navigator, enabled = viewModel.completed && viewModel.sfFile == null && viewModel.legacyFile == null) }
             )
         }
     ) { innerPadding ->

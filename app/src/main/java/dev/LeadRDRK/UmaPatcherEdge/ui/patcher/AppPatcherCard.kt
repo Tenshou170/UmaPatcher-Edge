@@ -51,7 +51,8 @@ private enum class InstallMethod {
     SAVE,
     NORMAL,
     DIRECT,
-    SHIZUKU
+    SHIZUKU,
+    LEGACY
 }
 
 @Composable
@@ -68,6 +69,7 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         mutableListOf(InstallMethod.SAVE, InstallMethod.NORMAL).apply {
             if (isRootAvailable) add(InstallMethod.DIRECT)
             add(InstallMethod.SHIZUKU)
+            add(InstallMethod.LEGACY)
         }
     }
 
@@ -88,7 +90,8 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                         fileUris = fileUris,
                         install = true,
                         directInstall = false,
-                        shizukuInstall = true
+                        shizukuInstall = true,
+                        legacyInstall = false
                     )
                 )
             }
@@ -146,7 +149,7 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                         if(Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                             PatcherLauncher.launch(
                                 navigator,
-                                AppPatcher(fileUris, install = true, directInstall = false, shizukuInstall = true)
+                                AppPatcher(fileUris, install = true, directInstall = false, shizukuInstall = true, legacyInstall = false)
                             )
                         }else if (Shizuku.shouldShowRequestPermissionRationale()) {
                             showShizukuRationaleDialog = true
@@ -160,7 +163,8 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                                 fileUris = if (currentMethod == InstallMethod.DIRECT) arrayOf() else fileUris,
                                 install = currentMethod == InstallMethod.NORMAL,
                                 directInstall = currentMethod == InstallMethod.DIRECT,
-                                shizukuInstall = false
+                                shizukuInstall = false,
+                                legacyInstall = currentMethod == InstallMethod.LEGACY
                             )
                         )
                     }
@@ -182,6 +186,7 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                     InstallMethod.NORMAL -> stringResource(R.string.normal_install)
                     InstallMethod.DIRECT -> stringResource(R.string.direct_install)
                     InstallMethod.SHIZUKU -> stringResource(R.string.shizuku_install)
+                    InstallMethod.LEGACY -> stringResource(R.string.legacy_install)
                 }
             }.toTypedArray(),
             state = selectedMethodIndex,

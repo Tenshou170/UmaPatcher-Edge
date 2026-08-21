@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">UmaPatcher Edge</string>
     <string name="home">主頁</string>
     <string name="settings">設定</string>
     <string name="about">關於</string>
@@ -86,6 +87,17 @@
     <string name="shizuku_install">Shizuku 安裝</string>
     <string name="shizuku_install_available">（可用）</string>
     <string name="shizuku_install_unavailable">（不可用）</string>
+    <string name="legacy_install">傳統方式安裝</string>
+    <string name="legacy_install_unknown_sources_required">需要授予「安裝未知應用程式」權限</string>
+    <string name="legacy_install_unknown_sources_info">Android 系統要求先授予本應用程式「安裝未知應用程式」權限，才能啟動系統軟體套件安裝程式。點擊「確定」前往設定頁面，為 UmaPatcher Edge 授予該權限後返回此處即可。</string>
+    <string name="legacy_install_failed">啟動系統軟體套件安裝程式失敗。</string>
+    <string name="merge_apks">將拆分 APK 合併為獨立 APK</string>
+    <string name="merge_apks_desc">當使用「儲存已修改的檔案」且選用了拆分 APK 時，輸出檔案將合併為獨立的單個 APK，而不是打包為 XAPK。</string>
+    <string name="merging_apks">正在合併拆分 APK</string>
+    <string name="merge_no_base">在所選的安裝包中未找到基礎 APK，無法進行合併。</string>
+    <string name="merge_failed">合併拆分 APK 失敗：%s</string>
+    <string name="merge_sanitizing_manifest">正在清理合併後的 Manifest</string>
+    <string name="merge_writing_apk">正在寫入合併後的 APK</string>
     <string name="shizuku_permission_required">需要 Shizuku 權限</string>
     <string name="shizuku_permission_info">請授予本應用程式 Shizuku 權限，以便使用 Shizuku 安裝器。</string>
     <string name="shizuku_unavailable">Shizuku 不可用</string>

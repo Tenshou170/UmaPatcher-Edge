@@ -18,7 +18,8 @@ abstract class Patcher(
     var onLog: (String) -> Unit = {},
     var onProgress: (Float) -> Unit = {},
     var onTask: (String) -> Unit = {},
-    var onSaveFile: (String, File, (Boolean) -> Unit) -> Unit = { _: String, _: File, _: (Boolean) -> Unit -> }
+    var onSaveFile: (String, File, (Boolean) -> Unit) -> Unit = { _: String, _: File, _: (Boolean) -> Unit -> },
+    var onInstallLegacy: (File, (Boolean) -> Unit) -> Unit = { _: File, _: (Boolean) -> Unit -> }
 ) {
     var isCancelled = false
 
@@ -39,12 +40,14 @@ abstract class Patcher(
         onLog: (String) -> Unit = {},
         onProgress: (Float) -> Unit = {},
         onTask: (String) -> Unit = {},
-        onSaveFile: (String, File, (Boolean) -> Unit) -> Unit
+        onSaveFile: (String, File, (Boolean) -> Unit) -> Unit,
+        onInstallLegacy: (File, (Boolean) -> Unit) -> Unit = { _, _ -> }
     ) {
         this.onLog = onLog
         this.onProgress = onProgress
         this.onTask = onTask
         this.onSaveFile = onSaveFile
+        this.onInstallLegacy = onInstallLegacy
     }
 
     fun ensureActive() {
@@ -84,6 +87,12 @@ abstract class Patcher(
     protected suspend fun saveFile(filename: String, file: File): Boolean {
         return suspendCoroutine { cont ->
             onSaveFile(filename, file) { cont.resume(it) }
+        }
+    }
+
+    protected suspend fun installLegacy(file: File): Boolean {
+        return suspendCoroutine { cont ->
+            onInstallLegacy(file) { cont.resume(it) }
         }
     }
 

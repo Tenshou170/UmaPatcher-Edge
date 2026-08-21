@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">UmaPatcher Edge</string>
     <string name="home">Home</string>
     <string name="settings">Settings</string>
     <string name="about">Tungkol</string>
@@ -56,6 +57,10 @@
     <string name="shizuku_install">Shizuku install</string>
     <string name="shizuku_install_available">(Available)</string>
     <string name="shizuku_install_unavailable">(Hindi available)</string>
+    <string name="legacy_install">Legacy install</string>
+    <string name="legacy_install_unknown_sources_required">Kailangan ng pahintulot</string>
+    <string name="legacy_install_unknown_sources_info">Kinakailangan ng Android na ibigay ang pahintulot na \"Mag-install ng di-kilalang app\" (\"Install unknown apps\") bago nito mabuksan ang system package installer. Pindutin ang OK para buksan ang settings page at ibigay ang pahintulot para sa UmaPatcher Edge, at bumalik dito pagkatapos ibigay ang pahintulot.</string>
+    <string name="legacy_install_failed">Nabigong buksan ang system package installer.</string>
 
     <!-- Shizuku -->
     <string name="shizuku_permission_required">Kailangan ng Shizuku permission</string>
@@ -83,6 +88,15 @@
     <string name="extracting_file">Ine-extract ang file: %s</string>
     <string name="creating_file">Ginagawa ang file: %s</string>
     <string name="cleaning_up">Cleaning up</string>
+
+    <!-- Merge split APKs -->
+    <string name="merge_apks">I-merge ang split APKs sa iisang APK</string>
+    <string name="merge_apks_desc">Kapag ginagamit ang \"Save patched file\" at may piniling split APK, Magiging nag-iisang APK file ang output sa halip ng XAPK.</string>
+    <string name="merging_apks">Sinasama ang mga split APK</string>
+    <string name="merge_no_base">Walang base APK na nahanap sa mga piniling split. Hindi maisasama.</string>
+    <string name="merge_failed">Failed to merge split APKs: %s</string>
+    <string name="merge_sanitizing_manifest">Sina-sanitize ang merged manifest</string>
+    <string name="merge_writing_apk">Sine-save ang merged APK</string>
 
     <!-- AppPatcher -->
     <string name="syncing_app_libs">Sini-sync ang Hachimi libraries</string>

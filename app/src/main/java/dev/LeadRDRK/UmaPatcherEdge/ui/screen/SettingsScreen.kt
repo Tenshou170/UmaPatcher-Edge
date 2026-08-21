@@ -69,6 +69,13 @@ fun SettingsScreen(
                 onCheckedChange = { viewModel.updateCheckForUpdates(context, it) }
             )
 
+            BooleanOption(
+                title = stringResource(R.string.merge_apks),
+                desc = stringResource(R.string.merge_apks_desc),
+                value = viewModel.mergeApks,
+                onCheckedChange = { viewModel.updateMergeApks(context, it) }
+            )
+
             StringOption(
                 title = stringResource(R.string.hachimi_repo),
                 value = viewModel.hachimiRepo,

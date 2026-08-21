@@ -22,6 +22,7 @@ object PrefKey {
     val HACHIMI_MOD_SOURCE = stringPreferencesKey("hachimi_mod_source")
     val CUSTOM_MOD_SO_URI = stringPreferencesKey("custom_mod_so_uri")
     val CUSTOM_MOD_SO_NAME = stringPreferencesKey("custom_mod_so_name")
+    val MERGE_APKS = booleanPreferencesKey("merge_apks")
 }
 
 val defaultValues = mapOf(
@@ -31,7 +32,8 @@ val defaultValues = mapOf(
     Pair(PrefKey.HACHIMI_REPO, "Tenshou170/Hachimi-Edge"),
     Pair(PrefKey.HACHIMI_MOD_SOURCE, "github"),
     Pair(PrefKey.CUSTOM_MOD_SO_URI, ""),
-    Pair(PrefKey.CUSTOM_MOD_SO_NAME, "")
+    Pair(PrefKey.CUSTOM_MOD_SO_NAME, ""),
+    Pair(PrefKey.MERGE_APKS, false)
 )
 
 suspend fun Context.getPrefValue(key: Preferences.Key<*>): Any? {

@@ -66,7 +66,8 @@ class AppPatcher(
     private val fileUris: Array<Uri>,
     private val install: Boolean,
     private val directInstall: Boolean,
-    private val shizukuInstall: Boolean
+    private val shizukuInstall: Boolean,
+    private val legacyInstall: Boolean = false
 ): Patcher() {
     override suspend fun run(context: Context): Boolean {
         try {
@@ -185,8 +186,13 @@ class AppPatcher(
                     externalFiles.firstOrNull()?.parentFile?.deleteRecursively()
                     success
                 }
+                legacyInstall -> mergeAndInstallLegacy(context, apkFiles)
                 install -> installApks(context, apkFiles)
-                else -> createAndSaveXapk(context, apkFiles)
+                else -> {
+                    val mergeApks = context.getPrefValue(PrefKey.MERGE_APKS) as Boolean
+                    if (mergeApks) mergeAndSaveApk(context, apkFiles)
+                    else createAndSaveXapk(context, apkFiles)
+                }
             }
         }
         catch (ex: Exception) {
@@ -214,6 +220,7 @@ class AppPatcher(
                     externalFiles.firstOrNull()?.parentFile?.deleteRecursively()
                     success
                 }
+                legacyInstall -> installLegacyOrFallback(context, zip.file)
                 install -> installApks(context, arrayOf(zip.file))
                 else -> {
                     val success = saveFile("patched-${System.currentTimeMillis()}.apk", zip.file)
@@ -253,8 +260,13 @@ class AppPatcher(
                     externalFiles.firstOrNull()?.parentFile?.deleteRecursively()
                     success
                 }
+                legacyInstall -> mergeAndInstallLegacy(context, files)
                 install -> installApks(context, files)
-                else -> createAndSaveXapk(context, files)
+                else -> {
+                    val mergeApks = context.getPrefValue(PrefKey.MERGE_APKS) as Boolean
+                    if (mergeApks) mergeAndSaveApk(context, files)
+                    else createAndSaveXapk(context, files)
+                }
             }
         }
         catch (ex: Exception) {
@@ -702,6 +714,165 @@ class AppPatcher(
         xapkFile.delete()
 
         return success
+    }
+
+    private suspend fun mergeAndSaveApk(context: Context, files: Array<File>): Boolean {
+        task = context.getString(R.string.merging_apks)
+        progress = -1f
+
+        val mergedApk = context.workDir.resolve("merged.apk")
+        mergedApk.delete()
+
+        var mergeResult: SplitApkMerger.Result? = null
+        try {
+            val logger = object : com.reandroid.apk.APKLogger {
+                override fun logMessage(msg: String?) { if (!msg.isNullOrEmpty()) log(msg) }
+                override fun logError(msg: String?, tr: Throwable?) {
+                    if (!msg.isNullOrEmpty()) log(msg)
+                    if (tr != null) logException(tr as? Exception ?: RuntimeException(tr))
+                }
+                override fun logVerbose(msg: String?) { }
+            }
+
+            mergeResult = SplitApkMerger.merge(files, logger)
+
+            task = context.getString(R.string.merge_sanitizing_manifest)
+            progress = -1f
+            task = context.getString(R.string.merge_writing_apk)
+            progress = 0f
+            val totalFiles = mergeResult.merged.zipEntryMap.toArray(true).size.coerceAtLeast(1)
+            var written = 0
+            mergeResult.merged.writeApk(mergedApk) { _, _, _ ->
+                progress = (++written).toFloat() / totalFiles
+            }
+        } catch (ex: SplitApkMerger.MergeException) {
+            log(ex.message ?: context.getString(R.string.merge_no_base))
+            return false
+        } catch (ex: Exception) {
+            log(context.getString(R.string.merge_failed).format(ex.message ?: ex.javaClass.simpleName))
+            logException(ex)
+            return false
+        } finally {
+            mergeResult?.let { r ->
+                runCatching { r.merged.close() }
+                r.inputModules.forEach { runCatching { it.close() } }
+            }
+        }
+
+        return try {
+            task = context.getString(R.string.signing_apk_file).format(mergedApk.name)
+            progress = -1f
+
+            val signedApkFile = context.workDir.resolve("tmp_signed_merged.apk")
+            val apkSigner = ApkSigner("UmaPatcher", "securep@ssw0rd816-n")
+            apkSigner.signApk(mergedApk, signedApkFile, context.ksFile)
+            if (!signedApkFile.renameTo(mergedApk)) {
+                log(context.getString(R.string.failed_to_move_file).format(signedApkFile.name))
+                return false
+            }
+
+            val success = saveFile(
+                "patched-${System.currentTimeMillis()}.apk",
+                mergedApk
+            )
+            log(
+                if (success) context.getString(R.string.file_saved)
+                else context.getString(R.string.failed_to_save_file)
+            )
+            success
+        } catch (ex: Exception) {
+            logException(ex)
+            false
+        } finally {
+            task = context.getString(R.string.cleaning_up)
+            progress = -1f
+            mergedApk.delete()
+            context.workDir.resolve("tmp_signed_merged.apk").delete()
+        }
+    }
+
+    private suspend fun mergeAndInstallLegacy(context: Context, files: Array<File>): Boolean {
+        task = context.getString(R.string.merging_apks)
+        progress = -1f
+
+        val mergedApk = context.workDir.resolve("merged.apk")
+        mergedApk.delete()
+
+        var mergeResult: SplitApkMerger.Result? = null
+        try {
+            val logger = object : com.reandroid.apk.APKLogger {
+                override fun logMessage(msg: String?) { if (!msg.isNullOrEmpty()) log(msg) }
+                override fun logError(msg: String?, tr: Throwable?) {
+                    if (!msg.isNullOrEmpty()) log(msg)
+                    if (tr != null) logException(tr as? Exception ?: RuntimeException(tr))
+                }
+                override fun logVerbose(msg: String?) { }
+            }
+
+            mergeResult = SplitApkMerger.merge(files, logger)
+
+            task = context.getString(R.string.merge_sanitizing_manifest)
+            progress = -1f
+            task = context.getString(R.string.merge_writing_apk)
+            progress = 0f
+            val totalFiles = mergeResult.merged.zipEntryMap.toArray(true).size.coerceAtLeast(1)
+            var written = 0
+            mergeResult.merged.writeApk(mergedApk) { _, _, _ ->
+                progress = (++written).toFloat() / totalFiles
+            }
+        } catch (ex: SplitApkMerger.MergeException) {
+            log(ex.message ?: context.getString(R.string.merge_no_base))
+            return false
+        } catch (ex: Exception) {
+            log(context.getString(R.string.merge_failed).format(ex.message ?: ex.javaClass.simpleName))
+            logException(ex)
+            return false
+        } finally {
+            mergeResult?.let { r ->
+                runCatching { r.merged.close() }
+                r.inputModules.forEach { runCatching { it.close() } }
+            }
+        }
+
+        return try {
+            task = context.getString(R.string.signing_apk_file).format(mergedApk.name)
+            progress = -1f
+
+            val signedApkFile = context.workDir.resolve("tmp_signed_merged.apk")
+            val apkSigner = ApkSigner("UmaPatcher", "securep@ssw0rd816-n")
+            apkSigner.signApk(mergedApk, signedApkFile, context.ksFile)
+            if (!signedApkFile.renameTo(mergedApk)) {
+                log(context.getString(R.string.failed_to_move_file).format(signedApkFile.name))
+                return false
+            }
+
+            val launched = installLegacyOrFallback(context, mergedApk)
+            log(
+                if (launched) context.getString(R.string.install_completed)
+                else context.getString(R.string.legacy_install_failed)
+            )
+            launched
+        } catch (ex: Exception) {
+            logException(ex)
+            false
+        }
+    }
+
+    private suspend fun installLegacyOrFallback(context: Context, apk: File): Boolean {
+        task = context.getString(R.string.installing)
+        progress = -1f
+
+        val launched = try {
+            installLegacy(apk)
+        } catch (ex: Exception) {
+            logException(ex)
+            false
+        }
+
+        if (launched) return true
+
+        log(context.getString(R.string.legacy_install_failed))
+        return installApks(context, arrayOf(apk))
     }
 
     private fun getAssetDownloadUrl(assets: List<Map<String, Any>>, name: String) =

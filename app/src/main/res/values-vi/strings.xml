@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">UmaPatcher Edge</string>
     <string name="home">Trang chính</string>
     <string name="settings">Cài đặt</string>
     <string name="about">Giới thiệu</string>
@@ -86,7 +87,18 @@
 
     <string name="shizuku_install">Cài đặt Shizuku</string>
     <string name="shizuku_install_available">(Có sẵn)</string>
-    <string name="shizuku_install_unavailable">(Không có sẵn)</string>    
+    <string name="shizuku_install_unavailable">(Không có sẵn)</string>
+    <string name="legacy_install">Cài đặt truyền thống</string>
+    <string name="legacy_install_unknown_sources_required">Yêu cầu quyền cài đặt ứng dụng không rõ nguồn gốc</string>
+    <string name="legacy_install_unknown_sources_info">Android yêu cầu bạn cấp quyền cho ứng dụng này cài đặt ứng dụng không rõ nguồn gốc trước khi có thể mở trình cài đặt gói của hệ thống. Nhấn OK để mở trang cài đặt, sau đó cấp quyền cho UmaPatcher Edge và quay lại đây sau khi đã cấp quyền.</string>
+    <string name="legacy_install_failed">Không thể mở trình cài đặt gói của hệ thống.</string>
+    <string name="merge_apks">Hợp nhất các file split APK thành APK độc lập</string>
+    <string name="merge_apks_desc">Khi sử dụng \"Lưu file đã được vá\" và đã chọn các file split APK, file đầu ra sẽ là một file APK độc lập thay vì đóng gói thành XAPK.</string>
+    <string name="merging_apks">Đang hợp nhất các file split APK</string>
+    <string name="merge_no_base">Không tìm thấy file APK Base trong các file đã chọn. Không thể hợp nhất.</string>
+    <string name="merge_failed">Hợp nhất split APK thất bại: %s</string>
+    <string name="merge_sanitizing_manifest">Đang làm sạch manifest sau khi hợp nhất</string>
+    <string name="merge_writing_apk">Đang ghi file APK đã hợp nhất</string>    
     <string name="shizuku_permission_required">Cần có quyền Shizuku</string>
     <string name="shizuku_permission_info">Vui lòng cấp quyền Shizuku cho ứng dụng để sử dụng trình cài đặt Shizuku.</string>
     <string name="shizuku_unavailable">Shizuku không có sẵn</string>
