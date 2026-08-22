@@ -908,7 +908,7 @@ class AppPatcher(
                                 if (next == -1 || next == 0 || next < 32 || next > 126) break
                                 sb.append(next.toChar())
                             }
-                            val regex = Regex("^(v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-zA-Z0-9]+)*)")
+                            val regex = Regex("^(v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-fA-F0-9]{7,12})?(?:-dirty)?)")
                             val match = regex.find(sb.toString())
                             if (match != null) return match.groupValues[1]
                             matchIndex = 0
