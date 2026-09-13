@@ -57,7 +57,6 @@ class SettingsViewModel : ViewModel() {
 
     fun forceRedownloadMod() {
         appLibsVersion = ""
-        // This will be saved to DataStore via the LaunchedEffect in UI or we can do it here
     }
 
     fun saveAppLibsVersion(context: Context, value: String) {

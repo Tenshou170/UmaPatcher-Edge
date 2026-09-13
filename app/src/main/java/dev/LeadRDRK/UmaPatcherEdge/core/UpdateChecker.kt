@@ -70,13 +70,22 @@ object UpdateChecker {
         val tagName = release["tag_name"] as String
         val latestVersion = parseVersion(tagName.removePrefix("v"))
 
-        return if (latestVersion != null && currentVersion != null && latestVersion > currentVersion) {
+        return if (latestVersion != null && currentVersion != null && isNewer(latestVersion, currentVersion)) {
             callback(tagName)
             true
         } else false
     }
 
     fun getReleaseUrl(tagName: String) = releases.getReleaseUrl(tagName)
+
+    /**
+     * Returns true if [a] is strictly greater than [b] as a semver triple.
+     */
+    private fun isNewer(a: Triple<Int, Int, Int>, b: Triple<Int, Int, Int>): Boolean {
+        if (a.first != b.first) return a.first > b.first
+        if (a.second != b.second) return a.second > b.second
+        return a.third > b.third
+    }
 
     /**
      * Parses a semver string of the form [v]MAJOR.MINOR.PATCH into a

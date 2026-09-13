@@ -96,8 +96,7 @@ fun SettingsScreen(
                         )
                     }
                 }
-            ) {
-            }
+            ) {}
 
             OptionBase(
                 title = stringResource(R.string.import_signing_key),
@@ -105,8 +104,7 @@ fun SettingsScreen(
                 onClick = {
                     importKsLauncher.launch(arrayOf("*/*"))
                 }
-            ) {
-            }
+            ) {}
 
             OptionBase(
                 title = stringResource(R.string.force_redownload_mod),
@@ -118,8 +116,7 @@ fun SettingsScreen(
                     )
                     viewModel.forceRedownloadMod()
                 }
-            ) {
-            }
+            ) {}
 
             BottomBarScrollSpacer()
         }

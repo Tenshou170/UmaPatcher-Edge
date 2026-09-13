@@ -1005,7 +1005,14 @@ class AppPatcher(
 
         try {
             val releases = GitHubReleases(modRepo)
-            val latest = releases.fetchLatest()
+            val latest = try {
+                releases.fetchLatest()
+            } catch (ex: Exception) {
+                Log.w("AppPatcher", "GitHub fetch failed, trying Codeberg fallback: ${ex.message}")
+                // Codeberg mirrors the same repo structure under the same owner/name
+                val codebergReleases = GitHubReleases(modRepo, baseUrl = "https://codeberg.org/api/v1/repos")
+                codebergReleases.fetchLatest()
+            }
             val tagName = latest["tag_name"] as String
 
             val arm64Lib = context.modArm64Lib
