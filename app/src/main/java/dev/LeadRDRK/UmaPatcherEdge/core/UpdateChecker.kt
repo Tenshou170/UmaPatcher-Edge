@@ -14,7 +14,7 @@ object UpdateChecker {
     private const val CHECK_TIMEOUT = 300000 // 5 minutes
 
     private val releases = GitHubReleases("Tenshou170/UmaPatcher-Edge")
-    private const val currentTag = "v${BuildConfig.VERSION_NAME}"
+    private val currentVersion = parseVersion(BuildConfig.VERSION_NAME)
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private var running = false
@@ -68,12 +68,28 @@ object UpdateChecker {
     private fun rawRun(): Boolean {
         val release = releases.fetchLatest()
         val tagName = release["tag_name"] as String
+        val latestVersion = parseVersion(tagName.removePrefix("v"))
 
-        return if (tagName != currentTag) {
+        return if (latestVersion != null && currentVersion != null && latestVersion > currentVersion) {
             callback(tagName)
             true
         } else false
     }
 
     fun getReleaseUrl(tagName: String) = releases.getReleaseUrl(tagName)
+
+    /**
+     * Parses a semver string of the form [v]MAJOR.MINOR.PATCH into a
+     * comparable Triple. Returns null for malformed strings so callers
+     * can treat them as "not newer".
+     */
+    private fun parseVersion(s: String): Triple<Int, Int, Int>? {
+        val parts = s.removePrefix("v").split(".")
+        if (parts.size < 3) return null
+        return try {
+            Triple(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+        } catch (_: NumberFormatException) {
+            null
+        }
+    }
 }
