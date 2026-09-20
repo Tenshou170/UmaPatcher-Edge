@@ -76,6 +76,20 @@ fun SettingsScreen(
                 onCheckedChange = { viewModel.updateMergeApks(context, it) }
             )
 
+            BooleanOption(
+                title = stringResource(R.string.export_internal_data_provider),
+                desc = stringResource(R.string.export_internal_data_provider_desc),
+                value = viewModel.exportInternalDataProvider,
+                onCheckedChange = { viewModel.updateExportInternalDataProvider(context, it) }
+            )
+
+            BooleanOption(
+                title = stringResource(R.string.use_internal_files_dir),
+                desc = stringResource(R.string.use_internal_files_dir_desc),
+                value = viewModel.useInternalFilesDir,
+                onCheckedChange = { viewModel.updateUseInternalFilesDir(context, it) }
+            )
+
             StringOption(
                 title = stringResource(R.string.hachimi_repo),
                 value = viewModel.hachimiRepo,

@@ -18,6 +18,7 @@ class MainViewModel : ViewModel() {
     val isRooted = mutableStateOf(false)
     val openUpdateDialog = mutableStateOf(false)
     val updateTagName = mutableStateOf("")
+    var pendingUpdateDeepLink = mutableStateOf(false)
 
     fun init(context: Context) {
         GameChecker.init(context.packageManager)
@@ -33,6 +34,12 @@ class MainViewModel : ViewModel() {
         Shell.getShell { shell ->
             isRooted.value = shell.isRoot
             rootInitialized.value = true
+
+            // Consume any deeplink that arrived before the ViewModel was ready.
+            if (MainActivity.pendingDeepLink) {
+                MainActivity.pendingDeepLink = false
+                pendingUpdateDeepLink.value = true
+            }
         }
 
         UpdateChecker.init(context)

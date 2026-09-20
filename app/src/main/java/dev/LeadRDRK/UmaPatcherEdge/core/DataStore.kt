@@ -23,6 +23,8 @@ object PrefKey {
     val CUSTOM_MOD_SO_URI = stringPreferencesKey("custom_mod_so_uri")
     val CUSTOM_MOD_SO_NAME = stringPreferencesKey("custom_mod_so_name")
     val MERGE_APKS = booleanPreferencesKey("merge_apks")
+    val EXPORT_INTERNAL_DATA_PROVIDER = booleanPreferencesKey("export_internal_data_provider")
+    val USE_INTERNAL_FILES_DIR = booleanPreferencesKey("use_internal_files_dir")
 }
 
 val defaultValues = mapOf(
@@ -33,7 +35,9 @@ val defaultValues = mapOf(
     Pair(PrefKey.HACHIMI_MOD_SOURCE, "github"),
     Pair(PrefKey.CUSTOM_MOD_SO_URI, ""),
     Pair(PrefKey.CUSTOM_MOD_SO_NAME, ""),
-    Pair(PrefKey.MERGE_APKS, false)
+    Pair(PrefKey.MERGE_APKS, false),
+    Pair(PrefKey.EXPORT_INTERNAL_DATA_PROVIDER, true),
+    Pair(PrefKey.USE_INTERNAL_FILES_DIR, false)
 )
 
 suspend fun Context.getPrefValue(key: Preferences.Key<*>): Any? {

@@ -1,5 +1,6 @@
 package dev.LeadRDRK.UmaPatcherEdge
 
+import android.content.Intent
 import android.os.Bundle
 import android.content.pm.PackageManager
 import android.view.WindowManager
@@ -60,6 +61,8 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val SHIZUKU_PERMISSION_REQUEST_CODE = 9975
         var onShizukuPermissionResult: ((grantResult: Int) -> Unit)? = null
+        /** Set by checkDeepLink() before setContent() so MainViewModel.init() can read it. */
+        var pendingDeepLink = false
         init {
             Shell.enableVerboseLogging = BuildConfig.DEBUG
             Shell.setDefaultBuilder(Shell.Builder.create()
@@ -81,9 +84,11 @@ class MainActivity : ComponentActivity() {
 
         Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
 
+        checkDeepLink(intent)
+
         setContent {
             val mainViewModel: MainViewModel = viewModel()
-            
+
             LaunchedEffect(Unit) {
                 mainViewModel.init(this@MainActivity)
             }
@@ -91,6 +96,22 @@ class MainActivity : ComponentActivity() {
             UmaPatcherTheme {
                 MainContent(mainViewModel)
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        checkDeepLink(intent)
+    }
+
+    private fun checkDeepLink(intent: Intent?) {
+        val uri = intent?.data
+        if (uri?.scheme == "umapatcher-edge" && uri.host == "update-hachimi") {
+            // Signal HomeScreen to trigger patching via the ViewModel.
+            // The ViewModel is not yet available here (setContent hasn't run), so we
+            // use a companion-object flag that MainViewModel reads on init.
+            pendingDeepLink = true
         }
     }
 

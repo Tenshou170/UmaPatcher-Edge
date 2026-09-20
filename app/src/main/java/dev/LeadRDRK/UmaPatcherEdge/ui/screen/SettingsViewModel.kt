@@ -22,6 +22,8 @@ class SettingsViewModel : ViewModel() {
     var appLibsVersion by mutableStateOf("")
     var hachimiRepo by mutableStateOf("")
     var mergeApks by mutableStateOf(false)
+    var exportInternalDataProvider by mutableStateOf(true)
+    var useInternalFilesDir by mutableStateOf(false)
     var configRead by mutableStateOf(false)
 
     fun loadConfig(context: Context) {
@@ -30,6 +32,8 @@ class SettingsViewModel : ViewModel() {
             appLibsVersion = context.getPrefValue(PrefKey.APP_LIBS_VERSION) as String
             hachimiRepo = context.getPrefValue(PrefKey.HACHIMI_REPO) as String
             mergeApks = context.getPrefValue(PrefKey.MERGE_APKS) as Boolean
+            exportInternalDataProvider = context.getPrefValue(PrefKey.EXPORT_INTERNAL_DATA_PROVIDER) as Boolean
+            useInternalFilesDir = context.getPrefValue(PrefKey.USE_INTERNAL_FILES_DIR) as Boolean
             configRead = true
         }
     }
@@ -45,6 +49,20 @@ class SettingsViewModel : ViewModel() {
         mergeApks = value
         viewModelScope.launch {
             context.dataStore.edit { it[PrefKey.MERGE_APKS] = value }
+        }
+    }
+
+    fun updateExportInternalDataProvider(context: Context, value: Boolean) {
+        exportInternalDataProvider = value
+        viewModelScope.launch {
+            context.dataStore.edit { it[PrefKey.EXPORT_INTERNAL_DATA_PROVIDER] = value }
+        }
+    }
+
+    fun updateUseInternalFilesDir(context: Context, value: Boolean) {
+        useInternalFilesDir = value
+        viewModelScope.launch {
+            context.dataStore.edit { it[PrefKey.USE_INTERNAL_FILES_DIR] = value }
         }
     }
 

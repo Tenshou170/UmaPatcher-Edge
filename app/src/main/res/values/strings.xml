@@ -159,4 +159,21 @@
     <string name="stop_patching_and_cleanup">Stop patching</string>
     <string name="launch_game">Start game</string>
     <string name="patching_cancelled_by_user">Patching cancelled by user</string>
+
+    <!-- Export internal data provider -->
+    <string name="export_internal_data_provider">Export internal data provider</string>
+    <string name="export_internal_data_provider_desc">Add a documents provider to the patched APK that allows file managers and other apps to access its internal folder (/data/data).</string>
+    <string name="patching_documents_provider">Adding internal data documents provider</string>
+    <string name="documents_provider_patched">Internal data documents provider added.</string>
+    <string name="documents_provider_already_patched">Internal data documents provider is already present.</string>
+    <string name="documents_provider_patch_failed">Failed to add internal data documents provider.</string>
+
+    <!-- Use internal files directory -->
+    <string name="use_internal_files_dir">Use internal files directory</string>
+    <string name="use_internal_files_dir_desc">Makes Hachimi-Edge use the game\'s internal data directory (/data/data) instead of the old /Android/media folder for faster file speeds.\n\nDOWNSIDE: The internal folder (/data/data) is only accessible from file managers if \"Export internal data provider\" is enabled or if you are rooted.\n\nThis option is also required if you get error 2 on Android 16 QPR2+ or Android 17+.</string>
+    <string name="internal_files_marker_added">Internal files directory marker added.</string>
+    <string name="internal_files_marker_failed">Failed to add the internal files directory marker.</string>
+
+    <!-- Deep link updater -->
+    <string name="deep_link_missing_apks">Select the APK file(s) to patch first.</string>
 </resources>

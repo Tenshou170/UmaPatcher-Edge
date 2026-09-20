@@ -31,6 +31,18 @@ object RootUtils {
         ).exec()
     }
 
+    fun createFile(path: String): Shell.Result {
+        return Shell.cmd(
+            "touch ${shellArg(path)}"
+        ).exec()
+    }
+
+    fun removeFile(path: String): Shell.Result {
+        return Shell.cmd(
+            "rm -f ${shellArg(path)}"
+        ).exec()
+    }
+
     fun moveFile(src: String, dest: String): Shell.Result {
         return Shell.cmd(
             "mv ${shellArg(src)} ${shellArg(dest)}"

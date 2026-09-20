@@ -127,6 +127,34 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         }
     }
 
+    // umapatcher-edge://update-hachimi deeplink: start patching with last selected files/method
+    val pendingUpdateDeepLink by mainViewModel.pendingUpdateDeepLink
+    LaunchedEffect(pendingUpdateDeepLink) {
+        if (!pendingUpdateDeepLink) return@LaunchedEffect
+        mainViewModel.pendingUpdateDeepLink.value = false
+
+        val needsFiles = currentMethod != InstallMethod.DIRECT
+        if (needsFiles && fileUris.isEmpty()) {
+            android.widget.Toast.makeText(
+                context,
+                context.getString(R.string.deep_link_missing_apks),
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            return@LaunchedEffect
+        }
+
+        PatcherLauncher.launch(
+            navigator,
+            AppPatcher(
+                fileUris = if (needsFiles) fileUris else arrayOf(),
+                install = true,
+                directInstall = currentMethod == InstallMethod.DIRECT,
+                shizukuInstall = currentMethod == InstallMethod.SHIZUKU,
+                legacyInstall = currentMethod == InstallMethod.LEGACY
+            )
+        )
+    }
+
     PatcherCard(
         label = stringResource(R.string.app_patcher_label),
         icon = { Icon(painterResource(R.drawable.ic_apk_install), null) },

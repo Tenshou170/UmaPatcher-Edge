@@ -30,6 +30,7 @@ import com.reandroid.archive.Archive
 import com.reandroid.archive.FileInputSource
 import com.reandroid.archive.ZipEntryMap
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -128,6 +129,8 @@ class AppPatcher(
             log(context.getString(R.string.app_lib_dir_not_found))
             return false
         }
+
+        kotlinx.coroutines.runBlocking { syncInternalFilesMarker(context, packageInfo) }
 
         return true
     }
@@ -491,6 +494,8 @@ class AppPatcher(
             return false
         }
 
+        patchExtensions(context, extractDir)
+
         task = context.getString(R.string.creating_file).format(filename)
         progress = -1f
 
@@ -544,6 +549,53 @@ class AppPatcher(
             } catch (_: Exception) {
             }
             signedApkFile.delete()
+        }
+    }
+
+    private suspend fun patchExtensions(context: Context, extractDir: File) {
+        val useInternalFilesDir = context.getPrefValue(PrefKey.USE_INTERNAL_FILES_DIR) as Boolean
+        if (useInternalFilesDir && ExtensionsPatcher.addInternalFilesMarker(extractDir))
+            log(context.getString(R.string.internal_files_marker_added))
+
+        if (!(context.getPrefValue(PrefKey.EXPORT_INTERNAL_DATA_PROVIDER) as Boolean)) return
+
+        task = context.getString(R.string.patching_documents_provider)
+        progress = -1f
+
+        try {
+            val providerDex = context.assets
+                .open(ExtensionsPatcher.DEX_ASSET_NAME)
+                .use { it.readBytes() }
+            val injected = ExtensionsPatcher.patchExtractedApk(extractDir, providerDex)
+            log(context.getString(
+                if (injected) R.string.documents_provider_patched
+                else R.string.documents_provider_already_patched
+            ))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(context.getString(R.string.documents_provider_patch_failed))
+            logException(e)
+        }
+    }
+
+    private suspend fun syncInternalFilesMarker(context: Context, packageInfo: PackageInfo) {
+        val dataDir = packageInfo.applicationInfo?.dataDir ?: return
+        val marker = File(dataDir, "files").resolve(ExtensionsPatcher.INTERNAL_FILES_MARKER_NAME)
+
+        if (context.getPrefValue(PrefKey.USE_INTERNAL_FILES_DIR) as Boolean) {
+            if (RootUtils.testFile(marker.path)) return
+
+            if (RootUtils.createFile(marker.path).isSuccess) {
+                val uid = packageInfo.applicationInfo!!.uid.toString()
+                RootUtils.chown(marker.path, "$uid:$uid")
+                RootUtils.chmod(marker.path, "644")
+                log(context.getString(R.string.internal_files_marker_added))
+            } else {
+                log(context.getString(R.string.internal_files_marker_failed))
+            }
+        } else if (RootUtils.testFile(marker.path)) {
+            RootUtils.removeFile(marker.path)
         }
     }
 
