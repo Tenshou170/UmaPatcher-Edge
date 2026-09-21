@@ -8,6 +8,9 @@ import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.StatFs
+import android.provider.OpenableColumns
+import android.text.format.Formatter
 import android.util.Log
 import androidx.datastore.preferences.core.edit
 import dev.LeadRDRK.UmaPatcherEdge.R
@@ -75,6 +78,9 @@ class AppPatcher(
             if (directInstall && !isDirectInstallAllowed(context))
                 return false
 
+            if (!directInstall && fileUris.isNotEmpty() && !checkStorageSpace(context))
+                return false
+
             val libVer = syncModLibs(context) ?: return false
             log(context.getString(R.string.using_app_lib_ver).format(libVer))
 
@@ -95,6 +101,40 @@ class AppPatcher(
             }
             dev.LeadRDRK.UmaPatcherEdge.utils.deleteRecursive(context.workDir, deleteRoot = false)
         }
+    }
+
+    private fun checkStorageSpace(context: Context): Boolean {
+        var totalSize = 0L
+        var multiplier = if (fileUris.size > 1) 2 else 3
+        for (uri in fileUris) {
+            val cursor = try {
+                context.contentResolver.query(uri, null, null, null, null)
+            } catch (_: Exception) {
+                continue
+            }
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)
+                    if (sizeIndex >= 0 && !it.isNull(sizeIndex))
+                        totalSize += it.getLong(sizeIndex)
+                    val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    val name = if (nameIndex >= 0) it.getString(nameIndex) else null
+                    if (name != null && name.endsWith(".xapk", ignoreCase = true))
+                        multiplier = 2
+                }
+            }
+        }
+        if (totalSize <= 0L) return true
+
+        // Worst case: extracted files + rebuilt APK + signed copy (fewer for splits/xapk)
+        val requiredBytes = totalSize * multiplier
+        val availableBytes = StatFs(context.workDir.path).availableBytes
+        if (availableBytes >= requiredBytes) return true
+
+        val missingSpace = Formatter.formatFileSize(context, requiredBytes - availableBytes)
+        log(context.getString(R.string.insufficient_storage).format(missingSpace))
+
+        return false
     }
 
     private fun runDirectInstall(context: Context): Boolean {
@@ -295,16 +335,22 @@ class AppPatcher(
             progress = -1f
 
             try {
-                context.contentResolver.openInputStream(fileUris[it]).use { input ->
-                    if (input == null) {
-                        log(context.getString(R.string.failed_to_read_file).format(filename))
-                        return null
-                    }
-
-                    file.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
+            val input = try {
+                context.contentResolver.openInputStream(fileUris[it])
+            } catch (ex: Exception) {
+                logException(ex)
+                null
+            }
+            input.use { stream ->
+                if (stream == null) {
+                    log(context.getString(R.string.failed_to_read_file).format(filename))
+                    return null
                 }
+
+                file.outputStream().use { output ->
+                    stream.copyTo(output)
+                }
+            }
             } catch (ex: Exception) {
                 log(context.getString(R.string.failed_to_read_file).format(filename))
                 logException(ex)
@@ -581,18 +627,36 @@ class AppPatcher(
 
     private suspend fun syncInternalFilesMarker(context: Context, packageInfo: PackageInfo) {
         val dataDir = packageInfo.applicationInfo?.dataDir ?: return
-        val marker = File(dataDir, "files").resolve(ExtensionsPatcher.INTERNAL_FILES_MARKER_NAME)
+        val filesDir = File(dataDir, "files")
+        val marker = filesDir.resolve(ExtensionsPatcher.INTERNAL_FILES_MARKER_NAME)
 
         if (context.getPrefValue(PrefKey.USE_INTERNAL_FILES_DIR) as Boolean) {
-            if (RootUtils.testFile(marker.path)) return
+            val uid = packageInfo.applicationInfo!!.uid.toString()
+            val fileContext = RootUtils.getFileContext(dataDir)
 
-            if (RootUtils.createFile(marker.path).isSuccess) {
-                val uid = packageInfo.applicationInfo!!.uid.toString()
+            if (RootUtils.testFile(marker.path)) {
+                if (fileContext != null) RootUtils.chcon(marker.path, fileContext)
+                return
+            }
+
+            if (!RootUtils.testDirectory(filesDir.path)) {
+                if (RootUtils.createDirectory(filesDir.path).isSuccess) {
+                    RootUtils.chown(filesDir.path, "$uid:$uid")
+                    RootUtils.chmod(filesDir.path, "700")
+                    if (fileContext != null) RootUtils.chcon(filesDir.path, fileContext)
+                }
+            }
+
+            val res = RootUtils.createFile(marker.path)
+            if (res.isSuccess) {
                 RootUtils.chown(marker.path, "$uid:$uid")
                 RootUtils.chmod(marker.path, "644")
+                if (fileContext != null) RootUtils.chcon(marker.path, fileContext)
                 log(context.getString(R.string.internal_files_marker_added))
             } else {
-                log(context.getString(R.string.internal_files_marker_failed))
+                var reason = res.out.orEmpty().joinToString(" ").trim()
+                if (reason.isEmpty()) reason = "exit ${res.code}"
+                log(context.getString(R.string.internal_files_marker_failed).format(reason))
             }
         } else if (RootUtils.testFile(marker.path)) {
             RootUtils.removeFile(marker.path)

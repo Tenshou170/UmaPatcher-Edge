@@ -1,5 +1,6 @@
 package dev.LeadRDRK.UmaPatcherEdge.ui.patcher
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -25,8 +26,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
@@ -35,15 +38,22 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.R
 import dev.LeadRDRK.UmaPatcherEdge.MainActivity
 import dev.LeadRDRK.UmaPatcherEdge.MainViewModel
+import dev.LeadRDRK.UmaPatcherEdge.core.PrefKey
+import dev.LeadRDRK.UmaPatcherEdge.core.dataStore
+import dev.LeadRDRK.UmaPatcherEdge.core.getPrefValue
 import dev.LeadRDRK.UmaPatcherEdge.patcher.AppPatcher
 import dev.LeadRDRK.UmaPatcherEdge.shizuku.ShizukuState
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.RadioGroupOption
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.SimpleOkCancelDialog
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 import com.topjohnwu.superuser.Shell
 
@@ -59,8 +69,10 @@ private enum class InstallMethod {
 fun AppPatcherCard(navigator: DestinationsNavigator) {
     var showShizukuRationaleDialog by remember { mutableStateOf(false) }
     var showShizukuNotAvailableDialog by remember { mutableStateOf(false) }
+    var staleFilesError by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val mainViewModel: MainViewModel = viewModel(context as MainActivity)
     val isRootAvailable = mainViewModel.isRooted.value
     val isShizukuAvailable by ShizukuState.isAvailable
@@ -77,8 +89,55 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
     val currentMethod = availableMethods.getOrElse(selectedMethodIndex.intValue) { InstallMethod.NORMAL }
 
     var fileUris by rememberSaveable { mutableStateOf<Array<Uri>>(arrayOf()) }
+    var stateLoaded by remember { mutableStateOf(false) }
+    var installMethodLoaded by rememberSaveable { mutableStateOf(false) }
+
     val fileSelectLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        fileUris = uris.toTypedArray()
+        val newFileUris = uris.toTypedArray()
+        for (uri in fileUris) releasePersistableUriPermission(context, uri)
+        for (uri in newFileUris) tryTakePersistableUriPermission(context, uri)
+        fileUris = newFileUris
+        coroutineScope.launch { saveFileUris(context, newFileUris) }
+    }
+
+    // Restore the persisted file URIs and install method from preferences
+    LaunchedEffect(true) {
+        if (!installMethodLoaded) {
+            val savedInstallMethod = context.getPrefValue(PrefKey.INSTALL_METHOD) as Int
+            if (selectedMethodIndex.intValue == 1) selectedMethodIndex.intValue = savedInstallMethod
+            installMethodLoaded = true
+        }
+
+        if (fileUris.isEmpty()) {
+            val savedFileUris = (context.getPrefValue(PrefKey.FILE_URIS) as String)
+                .split('\n')
+                .filter { it.isNotEmpty() }
+                .map { uri -> Uri.parse(uri) }
+            val existingFileUris = mutableListOf<Uri>()
+            for (uri in savedFileUris) {
+                if (canOpenUri(context, uri)) {
+                    existingFileUris.add(uri)
+                } else {
+                    releasePersistableUriPermission(context, uri)
+                }
+            }
+            if (existingFileUris.size != savedFileUris.size)
+                saveFileUris(context, existingFileUris.toTypedArray())
+            if (existingFileUris.isNotEmpty())
+                fileUris = existingFileUris.toTypedArray()
+        }
+
+        stateLoaded = true
+    }
+
+    // Persist install method changes (debounced)
+    LaunchedEffect(installMethodLoaded) {
+        if (!installMethodLoaded) return@LaunchedEffect
+        snapshotFlow { selectedMethodIndex.intValue }
+            .drop(1)
+            .collectLatest { method ->
+                saveInstallMethod(context, method)
+            }
     }
 
     LaunchedEffect(navigator, currentMethod, fileUris) {
@@ -127,6 +186,15 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         }
     }
 
+    if (staleFilesError != null) {
+        SimpleOkCancelDialog(
+            title = stringResource(R.string.patch),
+            onClose = { staleFilesError = null }
+        ) {
+            Text(staleFilesError!!)
+        }
+    }
+
     // umapatcher-edge://update-hachimi deeplink: start patching with last selected files/method
     val pendingUpdateDeepLink by mainViewModel.pendingUpdateDeepLink
     LaunchedEffect(pendingUpdateDeepLink) {
@@ -168,6 +236,18 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
             Button(
                 enabled = isButtonEnabled,
                 onClick = {
+                    // Drop stale URIs whose grants were revoked before patching
+                    if (currentMethod != InstallMethod.DIRECT && fileUris.isNotEmpty() && stateLoaded) {
+                        val (aliveUris, deadUris) = fileUris.partition { canOpenUri(context, it) }
+                        if (deadUris.isNotEmpty()) {
+                            for (uri in deadUris) releasePersistableUriPermission(context, uri)
+                            fileUris = aliveUris.toTypedArray()
+                            coroutineScope.launch { saveFileUris(context, aliveUris.toTypedArray()) }
+                            staleFilesError = context.getString(R.string.selected_files_no_longer_available)
+                            return@Button
+                        }
+                    }
+
                     if(!isShizukuAvailable && isShizukuOptionSelected) {
                         showShizukuNotAvailableDialog = true
                         return@Button
@@ -273,5 +353,47 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                 }
             }
         }
+    }
+}
+
+private fun canOpenUri(context: Context, uri: Uri): Boolean {
+    return try {
+        context.contentResolver.openInputStream(uri)?.use { it.read() } != null
+    } catch (_: Exception) {
+        false
+    }
+}
+
+private fun tryTakePersistableUriPermission(context: Context, uri: Uri) {
+    try {
+        context.contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+    } catch (_: SecurityException) {
+        // No persistable grant was offered for this URI
+    }
+}
+
+private fun releasePersistableUriPermission(context: Context, uri: Uri) {
+    try {
+        context.contentResolver.releasePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+    } catch (_: SecurityException) {
+        // No persisted permission was held for this URI
+    }
+}
+
+private suspend fun saveFileUris(context: Context, fileUris: Array<Uri>) {
+    context.dataStore.edit {
+        it[PrefKey.FILE_URIS] = fileUris.joinToString("\n") { uri -> uri.toString() }
+    }
+}
+
+private suspend fun saveInstallMethod(context: Context, installMethod: Int) {
+    context.dataStore.edit {
+        it[PrefKey.INSTALL_METHOD] = installMethod
     }
 }

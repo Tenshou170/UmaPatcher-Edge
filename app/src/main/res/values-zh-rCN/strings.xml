@@ -158,8 +158,10 @@
     <string name="use_internal_files_dir">使用内部文件目录</string>
     <string name="use_internal_files_dir_desc">让 Hachimi-Edge 使用游戏的内部数据目录（/data/data），而非旧版的 /Android/media 文件夹，从而获得更快的文件读写速度。\n\n缺点：内部文件夹（/data/data）只有在启用"导出内部数据提供器"或拥有 Root 权限时，才能通过文件管理器访问。\n\n若在 Android 16 QPR2+ 或 Android 17+ 上遇到错误 2，也必须启用此选项。</string>
     <string name="internal_files_marker_added">已添加内部文件目录标记。</string>
-    <string name="internal_files_marker_failed">未能添加内部文件目录标记。</string>
+    <string name="internal_files_marker_failed">未能添加内部文件目录标记：%1$s</string>
+    <string name="insufficient_storage">存储空间不足，无法进行补丁。请至少释放 %s 的空间后重试。</string>
 
     <!-- Deep link updater -->
     <string name="deep_link_missing_apks">请先选择要补丁的 APK 文件。</string>
+    <string name="selected_files_no_longer_available">部分所选文件已不可用，请重新选择 APK 文件。</string>
 </resources>

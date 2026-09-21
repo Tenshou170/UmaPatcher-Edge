@@ -174,7 +174,9 @@
     <string name="use_internal_files_dir_desc">Gagawin ang Hachimi-Edge na gamitin ang internal data directory (/data/data) ng laro sa halip ng lumang Android/media folder para mas-mabilis ang mga operasyon sa file. \n\nISANG DOWNSIDE: Naa-access lang ang internal folder mula sa mga file manager kapag pinagana ang \"I-export ang internal data provider\" o kung naka-root ka. \n\nKinakailangan rin ang opsyong ito kapag makakakuha ka ng \"os error 2\" sa Android 16 QPR2 o mas-mataas.</string>
     <string name="internal_files_marker_added">Dinagdag ang internal files directory marker.</string>
     <string name="internal_files_marker_failed">Nabigong idagdag ang internal files directory marker.</string>
+    <string name="insufficient_storage">Walang sapat na espasyo sa storage para mag-patch. Magbakante ng kahit %s at subukan ulit.</string>
 
     <!-- Deep link updater -->
     <string name="deep_link_missing_apks">Piliin muna ang (mga) APK file na ipa-patch.</string>
+    <string name="selected_files_no_longer_available">Hindi na available ang ilan sa mga piniling file. Piliin ang (mga) APK file ulit.</string>
 </resources>

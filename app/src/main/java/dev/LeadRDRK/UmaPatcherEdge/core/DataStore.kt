@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -25,6 +26,8 @@ object PrefKey {
     val MERGE_APKS = booleanPreferencesKey("merge_apks")
     val EXPORT_INTERNAL_DATA_PROVIDER = booleanPreferencesKey("export_internal_data_provider")
     val USE_INTERNAL_FILES_DIR = booleanPreferencesKey("use_internal_files_dir")
+    val FILE_URIS = stringPreferencesKey("app_patcher_file_uris")
+    val INSTALL_METHOD = intPreferencesKey("install_method")
 }
 
 val defaultValues = mapOf(
@@ -37,7 +40,9 @@ val defaultValues = mapOf(
     Pair(PrefKey.CUSTOM_MOD_SO_NAME, ""),
     Pair(PrefKey.MERGE_APKS, false),
     Pair(PrefKey.EXPORT_INTERNAL_DATA_PROVIDER, true),
-    Pair(PrefKey.USE_INTERNAL_FILES_DIR, false)
+    Pair(PrefKey.USE_INTERNAL_FILES_DIR, false),
+    Pair(PrefKey.FILE_URIS, ""),
+    Pair(PrefKey.INSTALL_METHOD, 1)
 )
 
 suspend fun Context.getPrefValue(key: Preferences.Key<*>): Any? {

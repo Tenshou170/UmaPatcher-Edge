@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.topjohnwu.superuser.Shell
 import dev.LeadRDRK.UmaPatcherEdge.core.GameChecker
 import dev.LeadRDRK.UmaPatcherEdge.core.UpdateChecker
+import dev.LeadRDRK.UmaPatcherEdge.ui.patcher.PatcherLauncher
 import dev.LeadRDRK.UmaPatcherEdge.utils.deleteRecursive
 import dev.LeadRDRK.UmaPatcherEdge.utils.repoDir
 import dev.LeadRDRK.UmaPatcherEdge.utils.workDir
@@ -23,9 +24,12 @@ class MainViewModel : ViewModel() {
     fun init(context: Context) {
         GameChecker.init(context.packageManager)
 
-        // Init work directory
-        context.workDir.mkdir()
-        deleteRecursive(context.workDir, deleteRoot = false)
+        // Init work directory, but don't wipe it while a patch is running
+        // (init can be called again on activity recreation)
+        if (!PatcherLauncher.patching) {
+            context.workDir.mkdir()
+            deleteRecursive(context.workDir, deleteRoot = false)
+        }
 
         // Remove legacy repo directory (if it exists)
         deleteRecursive(context.repoDir, deleteRoot = true)

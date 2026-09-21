@@ -23,6 +23,14 @@ object PatcherLauncher {
     fun cancelPatcher() {
         patcher?.isCancelled = true
     }
+
+    /**
+     * Logs a line through the active patcher's log callback, if one is running.
+     * Used from non-activity contexts such as the PackageInstaller status receiver.
+     */
+    fun log(line: String) {
+        patcher?.onLog?.invoke(line)
+    }
     
     suspend fun runPatcher(context: Context, callback: (Boolean) -> Unit) {
         val patcher = this.patcher

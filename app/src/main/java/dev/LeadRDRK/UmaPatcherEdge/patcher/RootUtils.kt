@@ -33,7 +33,7 @@ object RootUtils {
 
     fun createFile(path: String): Shell.Result {
         return Shell.cmd(
-            "touch ${shellArg(path)}"
+            "touch ${shellArg(path)} 2>&1"
         ).exec()
     }
 
@@ -58,6 +58,18 @@ object RootUtils {
     fun chown(path: String, owner: String): Shell.Result {
         return Shell.cmd(
             "chown $owner ${shellArg(path)}"
+        ).exec()
+    }
+
+    fun getFileContext(path: String): String? {
+        val res = Shell.cmd("ls -Zd ${shellArg(path)} 2>/dev/null").exec()
+        return res.out.orEmpty().firstOrNull()?.trim()
+            ?.split(" ")?.firstOrNull { ":" in it }
+    }
+
+    fun chcon(path: String, con: String): Shell.Result {
+        return Shell.cmd(
+            "chcon ${shellArg(con)} ${shellArg(path)}"
         ).exec()
     }
 

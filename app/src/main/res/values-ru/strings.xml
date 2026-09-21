@@ -135,7 +135,7 @@
     <string name="documents_provider_already_patched">Поставщик документов внутренних данных уже присутствует.</string>
     <string name="documents_provider_patch_failed">Не удалось добавить поставщик документов внутренних данных.</string>
     <string name="internal_files_marker_added">Метка директории внутренних данных добавлена.</string>
-    <string name="internal_files_marker_failed">Не удалось добавить метку директории внутренних данных.</string>
+    <string name="internal_files_marker_failed">Не удалось добавить метку директории внутренних данных: %1$s</string>
     <string name="insufficient_storage">Недостаточно свободного места для патча. Освободите хотя бы %s и повторите попытку.</string>
     <string name="apk_files_missing_lib">Неверные или неполные APK-файлы (отсутствуют нативные библиотеки)</string>
     <string name="app_lib_dir_not_found">Не удалось найти папку библиотек приложения. Ничего не было установлено.</string>
@@ -167,6 +167,7 @@
     <!-- Deep link updater -->
     <string name="deep_link_missing_files">Отсуствуют файлы</string>
     <string name="deep_link_missing_apks">Сначала выберите APK-файл(ы), которые надо пропатчить.</string>
+    <string name="selected_files_no_longer_available">Некоторые из выбранных файлов больше не доступны. Пожалуйста, выберите APK-файл(ы) заново.</string>
     <string name="deep_link_missing_so">Сначала выберите .so-файл Hachimi Edge.</string>
     <string name="deep_link_missing_apks_and_so">Сначала выберите APK-файл(ы) и .so-файл Hachimi Edge.</string>
 
