@@ -13,3 +13,6 @@ local.properties
 *.keystore
 *.jks
 *.b64
+
+# Generated extensions dex
+/app/src/main/assets/extensions.dex
