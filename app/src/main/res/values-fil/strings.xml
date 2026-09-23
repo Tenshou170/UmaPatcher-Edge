@@ -69,7 +69,7 @@
     <string name="shizuku_unavailable_info">Ang Shizuku ay alinman hindi naka-install o hindi tumatakbo. Paki-install at simulan ang Shizuku para gamitin ang install method na ito. Gusto mo ba buksan ang download page para sa Shizuku?</string>
 
     <!-- Patching -->
-    <string name="working">Working...</string>
+    <string name="working">Isinasagawa...</string>
     <string name="completed">Tapos na</string>
     <string name="patch_success_msg">[Matagumpay na na-patch]</string>
     <string name="patch_failed_msg">[Nabigong i-patch]</string>
@@ -87,14 +87,14 @@
     <string name="failed_to_save_file">Nabigong i-save ang file.</string>
     <string name="extracting_file">Ine-extract ang file: %s</string>
     <string name="creating_file">Ginagawa ang file: %s</string>
-    <string name="cleaning_up">Cleaning up</string>
+    <string name="cleaning_up">Naglilinis</string>
 
     <!-- Merge split APKs -->
     <string name="merge_apks">I-merge ang split APKs sa iisang APK</string>
     <string name="merge_apks_desc">Kapag ginagamit ang \"Save patched file\" at may piniling split APK, Magiging nag-iisang APK file ang output sa halip ng XAPK.</string>
     <string name="merging_apks">Sinasama ang mga split APK</string>
     <string name="merge_no_base">Walang base APK na nahanap sa mga piniling split. Hindi maisasama.</string>
-    <string name="merge_failed">Failed to merge split APKs: %s</string>
+    <string name="merge_failed">Nabigong isama ang mga split apk: %s</string>
     <string name="merge_sanitizing_manifest">Sina-sanitize ang merged manifest</string>
     <string name="merge_writing_apk">Sine-save ang merged APK</string>
 
@@ -116,8 +116,8 @@
     <string name="invalid_apk_file">Di-wastong APK file.</string>
     <string name="invalid_apk_file_name">Di-wastong APK file: %s</string>
     <string name="detected_apk_split">Na-detect ang APK split type: %s</string>
-    <string name="libraries_patched">Libraries patched: %s</string>
-    <string name="plugins_patched">Plugins patched: %s</string>
+    <string name="libraries_patched">Pina-patch na library: %s</string>
+    <string name="plugins_patched">Pina-patch na plugin: %s</string>
     <string name="failed_to_install_plugin">Nabigong i-install ang plugin: %s</string>
     <string name="invalid_apk_splits_duplicate">Invalid APK splits; may ibang %s APK na nahanap.</string>
     <string name="apk_splits_missing_base">Nawawala ang base APK mula sa APK splits.</string>
@@ -125,7 +125,7 @@
     <string name="detected_xapk_file">Na-detect ang XAPK file.</string>
     <string name="detected_apk_file">Na-detect ang normal na APK file.</string>
     <string name="patching_as_split_apks">Pina-patch bilang split APKs.</string>
-    <string name="staging_app">Staging app</string>
+    <string name="staging_app">Hinahanda ang app</string>
     <string name="removing_legacy_files">Tinatanggal ang legacy files</string>
     <string name="shizuku_moving_files">Nililipat ang mga file para sa Shizuku</string>
     <string name="external_cache_unavailable">Hindi available ang external cache folder.</string>
@@ -154,7 +154,7 @@
     <string name="use_custom_mod_lib">Local library file</string>
     <string name="tap_to_select_mod_lib">I-tap dito para pumili ng local .so file</string>
     <string name="custom_mod_lib_selected">Napili: %s</string>
-    <string name="custom_so_supported_files">Supported files: .so</string>
+    <string name="custom_so_supported_files">Mga sinusuportahang file: .so</string>
 
     <!-- Patching screen actions -->
     <string name="stop_patching_and_cleanup">Stop patching</string>

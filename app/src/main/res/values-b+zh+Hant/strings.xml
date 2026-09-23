@@ -143,4 +143,25 @@
     <string name="stop_patching_and_cleanup">停止修改</string>
     <string name="launch_game">開始遊戲</string>
     <string name="patching_cancelled_by_user">使用者已取消修改</string>
+
+    <!-- 匯出內部資料提供器 -->
+    <string name="export_internal_data_provider">匯出內部資料提供器</string>
+    <string name="export_internal_data_provider_desc">在修改後的 APK 中新增文件提供器，允許檔案管理員和其他應用程式存取遊戲的內部資料夾（/data/data）。</string>
+    <string name="patching_documents_provider">正在新增內部資料文件提供器</string>
+    <string name="documents_provider_patched">已新增內部資料文件提供器。</string>
+    <string name="documents_provider_already_patched">內部資料文件提供器已存在。</string>
+    <string name="documents_provider_patch_failed">新增內部資料文件提供器失敗。</string>
+
+    <!-- 使用內部檔案目錄 -->
+    <string name="use_internal_files_dir">使用內部檔案目錄</string>
+    <string name="use_internal_files_dir_desc">讓 Hachimi-Edge 使用遊戲的內部資料目錄（/data/data），而非舊版的 /Android/media 資料夾，從而獲得更快的檔案讀寫速度。\n\n缺點：內部資料夾（/data/data）只有在啟用「匯出內部資料提供器」或擁有 Root 權限時，才能透過檔案管理員存取。\n\n若在 Android 16 QPR2+ 或 Android 17+ 上遇到錯誤 2，也必須啟用此選項。</string>
+    <string name="internal_files_marker_added">已新增內部檔案目錄標記。</string>
+    <string name="internal_files_marker_failed">未能新增內部檔案目錄標記：%1$s</string>
+
+    <!-- 儲存空間檢查 -->
+    <string name="insufficient_storage">儲存空間不足，無法進行補丁。請至少釋放 %s 的空間後重試。</string>
+
+    <!-- 深層連結更新程式 -->
+    <string name="deep_link_missing_apks">請先選擇要補丁的 APK 檔案。</string>
+    <string name="selected_files_no_longer_available">部分所選檔案已無法使用，請重新選擇 APK 檔案。</string>
 </resources>

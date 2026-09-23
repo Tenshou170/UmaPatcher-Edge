@@ -19,7 +19,6 @@
     <string name="app_patcher_supported_files">Поддерживаемые файлы: APK / сплит-APK, XAPK</string>
 
     <!-- Settings -->
-    <string name="check_for_updates_opt">Проверять обновления</string>
     <string name="check_for_updates_desc">Периодически проверять наличие обновлений при запуске приложения.</string>
     <string name="hachimi_repo">Репозиторий Hachimi Edge</string>
     <string name="export_signing_key">Экспорт ключа подписи</string>
@@ -29,9 +28,6 @@
     <string name="no_keystore_to_export">Нет хранилища ключей для экспорта.</string>
     <string name="keystore_imported">Хранилище ключей импортировано.</string>
     <string name="failed_to_import_keystore">Не удалось импортировать хранилище ключей.</string>
-    <string name="universal_signing_key">Универсальный ключ подписи</string>
-    <string name="universal_signing_key_desc">Подписывать пропатченные APK предустановленным универсальным ключом вместо использования отдельного хранилища ключей для вашего устройства. Опции импорта/экспорта ключа подписи будут игнорированы.\n\nПРЕДУПРЕЖДЕНИЕ: Если включить эту опцию, все пропатченные APK будут иметь один ключ подписи. Любой, у кого есть этот ключ, может подписывать вредоносные APK, которые смогут устанавливаться поверх ваших. Используйте эту опцию на свой страх и риск.</string>
-    <string name="signing_key_disabled_universal">Недоступно, поскольку включен универсальный ключ подписи.</string>
     <string name="force_redownload_mod">Принудительно перезагрузить Hachimi</string>
     <string name="force_redownload_mod_desc">Сделать существующие библиотеки недействительными и принудительно загрузить их заново.</string>
     <string name="force_redownload_mod_notice">Hachimi Edge будет загружен заново при следующем патчинге приложения.</string>
@@ -49,19 +45,9 @@
     <string name="check_for_updates">Проверить обновления</string>
     <string name="open_source_licenses">Лицензии открытого исходного кода</string>
     <string name="view_source_code">Просмотреть исходный код</string>
-    <string name="support_me">Поддержать на Ko-fi</string>
 
     <!-- Custom .so file picker -->
-    <string name="use_latest_version">Использовать последнюю версию</string>
-    <string name="use_latest_version_desc">Автоматически использовать последнюю версию Hachimi Edge. Отключите, чтобы вручную выбирать .so-файл.</string>
-    <string name="select_custom_so">Нажмите, чтобы выбрать .so-файл Hachimi Edge</string>
-    <string name="no_custom_so_selected">Файл не выбран</string>
     <string name="custom_so_supported_files">Поддерживаемые файлы: .so</string>
-    <string name="custom_so_invalid_selection">Неверно выбран .so-файл</string>
-    <string name="custom_so_multiple_selected">Только один .so-файл может быть выбран.</string>
-    <string name="custom_so_not_so_file">Выбранный файл не является .so-файлом.</string>
-    <string name="copying_custom_so">Копирование .so-файла Hachimi Edge</string>
-    <string name="failed_to_read_custom_so">Не удалось прочитать .so-файл Hachimi Edge.</string>
 
     <!-- Patcher options -->
     <string name="install_method">Метод установки</string>
@@ -123,6 +109,10 @@
 
     <!-- AppPatcher -->
     <string name="syncing_app_libs">Синхронизация библиотек Hachimi</string>
+    <string name="using_local_library">Используется локальная библиотека...</string>
+    <string name="local_library_loaded">Локальная библиотека успешно загружена!</string>
+    <string name="error_local_library_no_file">Ошибка: выбрана локальная библиотека, но файл не выбран.</string>
+    <string name="error_local_library_load_failed">Не удалось загрузить локальную библиотеку: %s</string>
     <string name="downloading_file">Загрузка файла: %s</string>
     <string name="failed_to_download_app_libs">Не удалось загрузить библиотеки Hachimi.</string>
     <string name="failed_to_sync_app_libs">Не удалось синхронизировать библиотеки Hachimi. Пропускаю.</string>
@@ -164,12 +154,23 @@
     <string name="shizuku_install_error">Установка через Shizuku завершилась с исключением: %s</string>
     <string name="shizuku_install_fail_unexpected">Служба неожиданно отключилась.</string>
 
+    <!-- Local Mod Source configuration -->
+    <string name="hachimi_mod_source">Источник Hachimi</string>
+    <string name="hachimi_mod_source_desc">Выберите, загружать ли Hachimi с GitHub или использовать локальный .so-файл.</string>
+    <string name="mod_source_github">Релизы GitHub</string>
+    <string name="mod_source_local">Локальный файл (.so)</string>
+    <string name="use_custom_mod_lib">Локальный файл библиотеки</string>
+    <string name="tap_to_select_mod_lib">Нажмите, чтобы выбрать локальный .so-файл</string>
+    <string name="custom_mod_lib_selected">Выбрано: %s</string>
+
+    <!-- Patching screen actions -->
+    <string name="stop_patching_and_cleanup">Остановить патчинг</string>
+    <string name="launch_game">Запустить игру</string>
+    <string name="patching_cancelled_by_user">Патчинг отменён пользователем</string>
+
     <!-- Deep link updater -->
-    <string name="deep_link_missing_files">Отсуствуют файлы</string>
     <string name="deep_link_missing_apks">Сначала выберите APK-файл(ы), которые надо пропатчить.</string>
     <string name="selected_files_no_longer_available">Некоторые из выбранных файлов больше не доступны. Пожалуйста, выберите APK-файл(ы) заново.</string>
-    <string name="deep_link_missing_so">Сначала выберите .so-файл Hachimi Edge.</string>
-    <string name="deep_link_missing_apks_and_so">Сначала выберите APK-файл(ы) и .so-файл Hachimi Edge.</string>
 
     <!-- Other -->
     <string name="cancel">Отмена</string>

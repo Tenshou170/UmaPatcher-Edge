@@ -145,4 +145,25 @@
     <string name="stop_patching_and_cleanup">Dừng vá</string>
     <string name="launch_game">Bắt đầu game</string>
     <string name="patching_cancelled_by_user">Đã hủy vá bởi người dùng</string>
+
+    <!-- Export internal data provider -->
+    <string name="export_internal_data_provider">Xuất trình cung cấp dữ liệu nội bộ</string>
+    <string name="export_internal_data_provider_desc">Thêm trình cung cấp tài liệu vào file APK đã vá, cho phép trình quản lý tệp và các ứng dụng khác truy cập thư mục nội bộ của game (/data/data).</string>
+    <string name="patching_documents_provider">Đang thêm trình cung cấp tài liệu dữ liệu nội bộ</string>
+    <string name="documents_provider_patched">Đã thêm trình cung cấp tài liệu dữ liệu nội bộ.</string>
+    <string name="documents_provider_already_patched">Trình cung cấp tài liệu dữ liệu nội bộ đã tồn tại.</string>
+    <string name="documents_provider_patch_failed">Thêm trình cung cấp tài liệu dữ liệu nội bộ thất bại.</string>
+
+    <!-- Use internal files directory -->
+    <string name="use_internal_files_dir">Sử dụng thư mục tệp nội bộ</string>
+    <string name="use_internal_files_dir_desc">Khiến Hachimi-Edge sử dụng thư mục dữ liệu nội bộ của game (/data/data) thay vì thư mục /Android/media cũ để tăng tốc độ đọc ghi tệp.\n\nNHƯỢC ĐIỂM: Thư mục nội bộ (/data/data) chỉ có thể truy cập từ trình quản lý tệp nếu \"Xuất trình cung cấp dữ liệu nội bộ\" được bật hoặc máy đã root.\n\nTùy chọn này cũng cần thiết nếu bạn gặp lỗi 2 trên Android 16 QPR2+ hoặc Android 17+.</string>
+    <string name="internal_files_marker_added">Đã thêm tệp đánh dấu thư mục tệp nội bộ.</string>
+    <string name="internal_files_marker_failed">Không thể thêm tệp đánh dấu thư mục tệp nội bộ: %1$s</string>
+
+    <!-- Storage check -->
+    <string name="insufficient_storage">Không đủ dung lượng để vá. Hãy giải phóng ít nhất %s và thử lại.</string>
+
+    <!-- Deep link updater -->
+    <string name="deep_link_missing_apks">Hãy chọn các file APK cần vá trước.</string>
+    <string name="selected_files_no_longer_available">Một số file đã chọn không còn khả dụng. Vui lòng chọn lại các file APK.</string>
 </resources>
