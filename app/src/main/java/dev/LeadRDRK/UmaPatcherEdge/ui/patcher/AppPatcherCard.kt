@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -43,10 +44,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.LeadRDRK.UmaPatcherEdge.R
 import dev.LeadRDRK.UmaPatcherEdge.MainActivity
 import dev.LeadRDRK.UmaPatcherEdge.MainViewModel
+import dev.LeadRDRK.UmaPatcherEdge.core.GameChecker
 import dev.LeadRDRK.UmaPatcherEdge.core.PrefKey
 import dev.LeadRDRK.UmaPatcherEdge.core.dataStore
 import dev.LeadRDRK.UmaPatcherEdge.core.getPrefValue
 import dev.LeadRDRK.UmaPatcherEdge.patcher.AppPatcher
+import dev.LeadRDRK.UmaPatcherEdge.patcher.UninstallPatcher
 import dev.LeadRDRK.UmaPatcherEdge.shizuku.ShizukuState
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.RadioGroupOption
 import dev.LeadRDRK.UmaPatcherEdge.ui.component.SimpleOkCancelDialog
@@ -69,6 +72,7 @@ private enum class InstallMethod {
 fun AppPatcherCard(navigator: DestinationsNavigator) {
     var showShizukuRationaleDialog by remember { mutableStateOf(false) }
     var showShizukuNotAvailableDialog by remember { mutableStateOf(false) }
+    var showUninstallConfirm by remember { mutableStateOf(false) }
     var staleFilesError by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
@@ -195,6 +199,20 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         }
     }
 
+    if (showUninstallConfirm) {
+        SimpleOkCancelDialog(
+            title = stringResource(R.string.uninstall_hachimi),
+            onClose = { ok ->
+                showUninstallConfirm = false
+                if (ok) {
+                    PatcherLauncher.launch(navigator, UninstallPatcher())
+                }
+            }
+        ) {
+            Text(stringResource(R.string.uninstall_confirm))
+        }
+    }
+
     // umapatcher-edge://update-hachimi deeplink: start patching with last selected files/method
     val pendingUpdateDeepLink by mainViewModel.pendingUpdateDeepLink
     LaunchedEffect(pendingUpdateDeepLink) {
@@ -279,6 +297,19 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                 }
             ) {
                 Text(stringResource(R.string.patch))
+            }
+
+            if (isRootAvailable && GameChecker.isPackageInstalled(context.packageManager)) {
+                OutlinedButton(
+                    onClick = { showUninstallConfirm = true }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_uninstall),
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(stringResource(R.string.uninstall_hachimi))
+                }
             }
         }
     ) {

@@ -23,6 +23,12 @@ abstract class Patcher(
 ) {
     var isCancelled = false
 
+    /** Log message shown when the patcher finishes successfully. */
+    open val successMessageRes: Int = R.string.patch_success_msg
+
+    /** Log message shown when the patcher fails. */
+    open val failureMessageRes: Int = R.string.patch_failed_msg
+
     var progress: Float = 0f
         set(value) {
             field = value

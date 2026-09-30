@@ -76,8 +76,8 @@ fun PatchingScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val patchSuccessMsg = stringResource(R.string.patch_success_msg)
-    val patchFailedMsg = stringResource(R.string.patch_failed_msg)
+    val patchSuccessMsg = stringResource(PatcherLauncher.patcher?.successMessageRes ?: R.string.patch_success_msg)
+    val patchFailedMsg = stringResource(PatcherLauncher.patcher?.failureMessageRes ?: R.string.patch_failed_msg)
     val patchCancelledMsg = stringResource(R.string.patching_cancelled_by_user)
 
     val sfLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {

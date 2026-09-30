@@ -88,4 +88,10 @@ object RootUtils {
             "chmod 755 ${shellArg(dest)}"
         ).exec()
     }
+
+    fun removeGamePlugins(dir: String): Shell.Result {
+        return Shell.cmd(
+            "find ${shellArg(dir)} -maxdepth 1 -type f -name 'libhachimi_*.so' -delete"
+        ).exec()
+    }
 }

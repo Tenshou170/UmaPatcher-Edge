@@ -52,7 +52,7 @@ private const val APK_ARM64_LIB_DIR = "lib/arm64-v8a"
 private const val APK_ARM64_LIB_PATH = "$APK_ARM64_LIB_DIR/libmain.so"
 private const val APK_ORIG_ARM64_LIB_PATH = "$APK_ARM64_LIB_DIR/libmain_orig.so"
 
-private const val LEGACY_MOUNT_SCRIPT_DIR = "/data/adb/umapatcher-edge"
+internal const val LEGACY_MOUNT_SCRIPT_DIR = "/data/adb/umapatcher-edge"
 
 private val Context.libsDir: File
     get() = filesDir.resolve("libs")
